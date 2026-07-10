@@ -8,8 +8,6 @@ import type { LoginActionState } from "@/lib/auth/types";
 import { loginSchema } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/server";
 
-export const initialLoginState: LoginActionState = { status: "idle" };
-
 export async function loginAction(
   _previousState: LoginActionState,
   formData: FormData,

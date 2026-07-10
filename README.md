@@ -4,7 +4,7 @@ Proyecto técnico de tesis para mejorar la gestión operativa de una pequeña la
 
 ## Estado
 
-Fase 0: inicialización técnica y documentación preliminar. Todavía no existen conexiones a Supabase o Vercel, autenticación, migraciones ni módulos funcionales.
+Fase 1: infraestructura, esquema inicial, RLS y autenticación por roles implementados. La aplicación dispone de acceso administrativo y operativo protegido; los módulos funcionales comienzan en fases posteriores.
 
 ## Desarrollo local
 

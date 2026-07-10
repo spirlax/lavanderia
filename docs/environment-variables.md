@@ -9,7 +9,7 @@
 
 `.env.example` contiene únicamente estos nombres con valores vacíos. Para desarrollo local se utiliza `.env.local`, ignorado por Git.
 
-No se utiliza `service_role`, clave secreta, contraseña ni UUID de usuario. Las variables todavía no se configuraron en Vercel.
+No se utiliza `service_role`, clave secreta, contraseña ni UUID de usuario. Las dos variables están configuradas en Vercel para Production y Preview, sin documentar sus valores.
 
 ## Validación
 
@@ -27,4 +27,4 @@ La inicialización es diferida para que `next build` pueda analizar módulos sin
 - No copiar valores reales a `.env.example`.
 - No prefijar secretos con `NEXT_PUBLIC_`.
 - No usar claves `service_role` o secretas en el navegador.
-- Cuando Vercel sea autorizado, configurar únicamente URL y clave publicable en los entornos aprobados y repetir lint, typecheck, build y pruebas de sesión.
+- Configurar en Vercel únicamente URL y clave publicable en los entornos aprobados y repetir lint, typecheck, build y pruebas de sesión tras cualquier cambio.

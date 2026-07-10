@@ -1,6 +1,6 @@
 # Inicialización segura del primer administrador
 
-Este procedimiento se ejecutará manualmente cuando se autorice habilitar usuarios. No forma parte de las migraciones y no debe realizarse durante la Fase 1D.
+Este procedimiento se ejecuta manualmente cuando se autoriza habilitar usuarios. No forma parte de las migraciones.
 
 ## Procedimiento
 
@@ -19,6 +19,8 @@ values ('<AUTH_USER_UUID>'::uuid, 'admin', true, '<FULL_NAME>');
 5. Confirmar que existe una sola fila de `profiles` para ese UUID y que referencia correctamente `auth.users.id`.
 6. Probar que el usuario puede leer su perfil y que las políticas administrativas se habilitan únicamente mientras el perfil permanezca activo.
 7. Si la inicialización falla, no crear UUID alternativos ni perfiles sin usuario Auth; revisar la FK y repetir solo después de comprender el error.
+
+Para un operador se repite el mismo procedimiento con rol `operator`. Antes de insertar se confirma que cada cuenta Auth corresponde al nombre y rol previstos, sin inferirlos del correo ni guardarlos en metadatos editables.
 
 ## Reglas de seguridad
 

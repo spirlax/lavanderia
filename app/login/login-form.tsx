@@ -2,7 +2,10 @@
 
 import { useActionState } from "react";
 
-import { initialLoginState, loginAction } from "@/app/login/actions";
+import { loginAction } from "@/app/login/actions";
+import type { LoginActionState } from "@/lib/auth/types";
+
+const initialLoginState: LoginActionState = { status: "idle" };
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(
