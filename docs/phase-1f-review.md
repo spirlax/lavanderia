@@ -43,4 +43,16 @@ El entorno local permanece en Node.js `20.18.0`. El build pasa, pero Supabase re
 
 La Fase 1 queda limitada a infraestructura, esquema, RLS y autenticación. No se implementaron clientes, catálogo, pedidos, pagos, caja, importaciones, máquinas, reportes, dashboard ni inteligencia de negocio.
 
-El cierre definitivo exige que el deployment del commit final quede `READY` y que la misma matriz de permisos se confirme en producción. Esa evidencia se registra después del push final sin incluir credenciales.
+## Verificación de producción
+
+- Deployment de producción asociado al commit de Fase 1F: `READY`.
+- URL: `https://lavanderia-teal.vercel.app`.
+- Sin sesión: `/login` carga; `/` y `/admin` redirigen a `/login`.
+- Admin: login, acceso a `/admin` y `/`, y logout aprobados.
+- Operator: login, acceso a `/`, bloqueo seguro de `/admin` y logout aprobados.
+- No se observaron errores visibles ni secretos en respuestas.
+- Las cookies de sesión y redirecciones funcionaron correctamente.
+
+El build mostró una advertencia no bloqueante por scripts ignorados de `sharp@0.34.5` y `unrs-resolver@1.12.2`. Instalación, TypeScript y build finalizaron correctamente, y las pruebas reales no mostraron fallos relacionados. No se ejecutó `pnpm approve-builds` ni se modificaron dependencias.
+
+Con esta evidencia, la Fase 1 queda cerrada. La Fase 2 no se inicia como parte de este trabajo.
