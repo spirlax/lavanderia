@@ -2,37 +2,27 @@
 
 ## Principio de fidelidad
 
-La plataforma conservará el nivel de detalle realmente disponible en la fuente. No se inventarán clientes, pedidos, pagos, movimientos, fechas ni desgloses para completar vacíos históricos.
+La plataforma conserva la granularidad y precisión reales de la fuente. No inventa customers, pedidos, pagos, movimientos, estados, horas ni desgloses.
 
-## Tipos de información
+## Clasificación
 
-### Pedidos históricos detallados
+- `platform`: datos operativos creados por el sistema; tienen actor y momentos exactos.
+- `historical_detailed`: pedidos individuales solo cuando el Excel aporta evidencia suficiente; conservan lote y referencia de origen.
+- `historical_daily`: agregados diarios separados; no crean customers, pedidos, pagos o caja.
+- `historical_monthly`: agregados mensuales separados; no se distribuyen entre días ni operaciones ficticias.
 
-Son registros cuyo origen contiene evidencia suficiente de pedidos individuales y sus detalles. Solo se importarán los datos presentes y validados; los campos ausentes permanecerán identificados como tales según el diseño que se apruebe.
+Una fecha sin hora se mantiene como `date`. Los pagos históricos se importan únicamente si existe evidencia individual y nunca alteran caja actual.
 
-### Resúmenes diarios
+## Lotes futuros
 
-Son agregados por día sin evidencia de cada pedido individual. Se conservarán como información agregada y no se convertirán artificialmente en pedidos ni movimientos de caja.
+Cada lote deberá conservar tipo, nombre y huella del archivo, versión de mapeo, zona horaria conocida, conteos de filas, validaciones, actor, fecha y referencias de origen. La importación será exclusiva de `admin`, idempotente y ejecutada en servidor.
 
-### Resúmenes mensuales
+## Validación futura de Excel
 
-Son agregados por mes. Se conservarán separados de los resúmenes diarios y de los pedidos detallados; no se distribuirán entre días o pedidos sin evidencia.
+1. Analizar una copia del archivo original.
+2. Confirmar estructura, hojas, encabezados, periodos, moneda y granularidad reales.
+3. Validar tipos, importes, fechas, duplicados y totales.
+4. Mostrar errores y advertencias antes de confirmar.
+5. Conciliar valores aceptados con la fuente.
 
-### Datos procedentes de Excel
-
-Excel es una fuente externa y no una garantía de calidad. Antes de importar se deberán validar formato, encabezados, tipos, fechas, duplicados, consistencia y nivel de detalle. Cada carga deberá conservar procedencia y resultado de validación.
-
-### Datos generados posteriormente por la plataforma
-
-Los nuevos datos operativos se registrarán desde los módulos autorizados y se distinguirán de los importados. Su estructura podrá ser más detallada, pero nunca se usará para atribuir detalle inexistente a periodos históricos.
-
-## Flujo futuro propuesto
-
-1. Analizar una copia del archivo sin modificar el original.
-2. Clasificar cada conjunto como pedidos detallados, resumen diario o resumen mensual.
-3. Validar estructura y contenido con reglas aprobadas.
-4. Presentar errores y advertencias antes de persistir.
-5. Importar mediante una operación de servidor trazable e idempotente.
-6. Conciliar totales con la fuente y documentar diferencias.
-
-Este flujo es documental; en Fase 0 no se leen archivos Excel ni se implementa un importador.
+La estructura real del Excel permanece pendiente. Esta fase no lee archivos, no crea tablas y no conecta Supabase.

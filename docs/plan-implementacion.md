@@ -1,50 +1,45 @@
 # Plan de implementación
 
-Cada fase requiere autorización explícita, alcance confirmado y cierre con `lint`, `typecheck` y `build`. El orden puede ajustarse solo a partir de requisitos validados.
+Cada fase requiere autorización explícita y cierre con `pnpm lint`, `pnpm typecheck` y `pnpm build`.
 
 ## Fase 0 — Inicialización técnica
 
-- Scaffold oficial de Next.js.
-- TypeScript estricto, ESLint, Tailwind CSS, pnpm y Zod.
-- Página mínima y documentación preliminar.
-- Git local y primer commit.
+Completada: scaffold, documentación base, GitHub y Vercel sin Supabase conectado.
 
-## Fase 1 — Fundamentos de datos y acceso
+## Fase 1A — Cierre documental de dominio
 
-- Confirmar modelo, reglas y matriz de permisos.
+Completada: reglas funcionales, modelo formal, permisos, flujo, pagos/caja, históricos, indicadores y pendientes. No se crearon migraciones ni se modificó Supabase.
+
+## Fase 1B — Núcleo de datos y acceso
+
 - Conectar Supabase con autorización previa.
-- Crear migraciones iniciales, RLS y autenticación para `admin` y `operator`.
+- Crear migración versionada solo para `profiles`, `customers`, `services`, `orders`, `order_items` y `order_status_history`.
+- Configurar Auth, RLS, políticas y pruebas de autorización para `admin` y `operator`.
+- Inicializar el primer admin mediante procedimiento confirmado.
 
-## Fase 2 — Operación principal
+## Fase 2 — Pagos y caja
 
-- Clientes y catálogo de servicios.
-- Pedidos, detalles, estados y trazabilidad.
+- Crear `cash_sessions`, `payments` y `cash_movements` mediante migración versionada.
+- Implementar saldo, entrega administrativa con deuda, anulaciones y cierre de caja.
 
-## Fase 3 — Control financiero operativo
+## Fase 3 — Históricos y reportes
 
-- Pagos y caja conforme a reglas confirmadas.
-- Controles de autorización y conciliación.
+- Crear `import_batches`, extensiones históricas y `historical_summaries`.
+- Importar Excel validado sin inventar operaciones.
+- Crear `report_runs` y medición semanal de tiempo de reportes.
 
-## Fase 4 — Seguimiento e importación histórica
+## Fase 4 — Indicadores y BI
 
-- Pedidos terminados no recogidos según criterio aprobado.
-- Importación validada desde Excel sin fabricar detalle histórico.
+- Implementar las fórmulas aprobadas respetando jornada, elegibilidad y precisión histórica.
+- Mostrar KPI acumulado de pedidos listos no entregados separado de la tasa diaria.
 
-## Fase 5 — Reportes e indicadores
+## Fase 5 — Entidades diferidas
 
-- Reportes operativos.
-- Implementación de los tres indicadores únicamente después de confirmar sus fórmulas.
-- Medición del tiempo de generación de reportes.
-
-## Fase 6 — Business intelligence y cierre
-
-- Dashboard de business intelligence basado en datos validados.
-- Configuración y administración de usuarios pendientes.
-- Verificación integral, documentación final y despliegue autorizado.
+- Evaluar `service_prices`, `cash_registers`, `cash_register_assignments`, `machines`, `system_settings` y `audit_events` según necesidades reales.
 
 ## Condiciones transversales
 
-- No realizar migraciones, despliegues ni acciones destructivas sin autorización.
-- No incorporar funciones, dependencias o integraciones fuera del alcance aprobado.
-- Mantener cambios de base de datos en migraciones y RLS en tablas expuestas.
-- Actualizar documentación y pendientes al cierre de cada fase.
+- No crear SQL, migraciones, despliegues ni acciones destructivas sin autorización.
+- No incorporar dependencias o integraciones fuera del alcance aprobado.
+- Toda tabla expuesta tendrá RLS y toda operación sensible se ejecutará en servidor.
+- No usar `service_role` en navegador.

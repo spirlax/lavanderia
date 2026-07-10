@@ -1,20 +1,11 @@
-# Permisos preliminares
+# Permisos y autorización
 
-## Principios
+- Denegar por defecto.
+- Resolver el rol en datos controlados por servidor; nunca en `user_metadata` editable.
+- Verificar autorización en servidor y reforzarla con RLS por fila/operación cuando exista base de datos.
+- No usar `service_role` ni secretos en navegador.
+- Los historiales, pagos, sesiones y movimientos no se editan ni eliminan; las anulaciones son acciones explícitas auditadas.
 
-- Denegar por defecto lo que no esté autorizado explícitamente.
-- Verificar autorización en el servidor y reforzarla con RLS en toda tabla expuesta.
-- No basar autorización únicamente en elementos visuales o navegación del cliente.
-- Mantener la clave `service_role` fuera del navegador.
+`admin` tiene alcance administrativo completo. `operator` registra customers, pedidos, pagos y movimientos manuales justificados en su propia sesión; avanza estados operativos y entrega solo sin saldo. No administra usuarios, configuración, importaciones, servicios/precios ni máquinas, y no cancela ni anula operaciones.
 
-## Roles conocidos
-
-| Área | `admin` | `operator` |
-| --- | --- | --- |
-| Operación diaria autorizada | Acceso completo | Acceso limitado por confirmar |
-| Configuración | Acceso completo | Sin acceso administrativo previsto |
-| Gestión de usuarios y roles | Acceso completo | Sin acceso administrativo previsto |
-| Reportes e indicadores | Acceso completo | Alcance por confirmar |
-| Importación histórica | Acceso completo sujeto a validación | Alcance por confirmar |
-
-La matriz detallada por acción —crear, leer, actualizar, anular, exportar y aprobar— queda pendiente de confirmación antes de implementar autenticación, políticas RLS o interfaz protegida.
+La matriz detallada está en `docs/matriz-permisos.md`. Las políticas concretas se implementarán mediante migraciones en una fase autorizada.

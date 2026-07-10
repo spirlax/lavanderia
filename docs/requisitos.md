@@ -23,7 +23,7 @@ La asignación detallada de permisos está pendiente de validación funcional an
 ## Capacidades previstas para fases posteriores
 
 - Autenticación.
-- Gestión de clientes.
+- Gestión de `customers`.
 - Catálogo de servicios.
 - Pedidos y detalle de pedidos.
 - Estados y trazabilidad.
