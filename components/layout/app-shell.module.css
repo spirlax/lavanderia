@@ -300,6 +300,21 @@
   background: var(--surface-muted);
 }
 
+.bottomNavLinkPrimary {
+  color: var(--primary-contrast);
+  background: var(--primary);
+  box-shadow: var(--shadow);
+}
+
+.bottomNavLinkPrimary.bottomNavLinkActive {
+  color: var(--primary-contrast);
+  background: var(--primary-hover);
+}
+
+.bottomNavLinkPrimary .bottomNavIcon {
+  color: var(--primary-contrast);
+}
+
 .topOperational {
   display: none;
 }

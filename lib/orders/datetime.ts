@@ -71,6 +71,44 @@ export function limaDateBoundsUtc(dateValue: string): {
   };
 }
 
+/** Instantánea de referencia para comparar vencimientos (servidor). */
+export function getReferenceInstantMs(): number {
+  return Date.parse(new Date().toISOString());
+}
+
+/** Fecha calendario actual en America/Lima (`YYYY-MM-DD`). */
+export function limaTodayDate(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "00";
+
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+/** Fecha calendario en America/Lima desplazada `days` días desde hoy. */
+export function limaDateOffset(days: number): string {
+  const today = limaTodayDate();
+  const base = new Date(`${today}T12:00:00-05:00`);
+  base.setUTCDate(base.getUTCDate() + days);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(base);
+
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "00";
+
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
 /** Valor inicial razonable para `datetime-local` en zona Lima (+2 h). */
 export function getDefaultScheduledForLocal(): string {
   const target = new Date(Date.now() + 2 * 60 * 60 * 1000);

@@ -1020,6 +1020,257 @@
   background: var(--info-soft);
 }
 
+.metricSuccess {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.metricValueSm {
+  margin: 0;
+  font-size: var(--text-h2);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.dashboardSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboardGrid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.kpiGrid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.kpiCardPrimary {
+  border-color: var(--primary);
+  background: linear-gradient(180deg, var(--info-soft), var(--surface));
+}
+
+.kpiCardSuccess {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+  background: linear-gradient(180deg, var(--success-soft), var(--surface));
+}
+
+.kpiCardAccent {
+  border-color: color-mix(in srgb, var(--accent-bi) 35%, var(--border));
+  background: linear-gradient(180deg, var(--accent-bi-soft), var(--surface));
+}
+
+.kpiCardWarn {
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--border));
+  background: linear-gradient(180deg, var(--warning-soft), var(--surface));
+}
+
+.kpiIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--primary);
+}
+
+.kpiLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpiValue {
+  margin: 0;
+  font-size: var(--text-kpi);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.alertGrid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.alertCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.alertCardWarn {
+  background: var(--warning-soft);
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--border));
+}
+
+.alertCardInfo {
+  background: var(--info-soft);
+  border-color: color-mix(in srgb, var(--info) 35%, var(--border));
+}
+
+.alertCardOk {
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+}
+
+.distList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.distRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.distMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-body-sm);
+}
+
+.distTrack {
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-muted);
+}
+
+.distBarFill,
+.distBarFillAccent,
+.distBarFillSuccess,
+.trendBarFill,
+.trendBarFillAccent {
+  border-radius: 999px;
+}
+
+.distBarFill,
+.trendBarFill {
+  background: var(--primary);
+}
+
+.distBarFillAccent,
+.trendBarFillAccent {
+  background: var(--accent-bi);
+}
+
+.distBarFillSuccess {
+  background: var(--success);
+}
+
+.distBarFill,
+.distBarFillAccent,
+.distBarFillSuccess {
+  height: 100%;
+  min-width: 0;
+}
+
+.trendChart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+  align-items: end;
+  min-height: 10rem;
+}
+
+.trendCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.trendTrack {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 7rem;
+  padding: 0 0.15rem;
+  background: linear-gradient(
+    180deg,
+    transparent 0,
+    transparent calc(100% - 1px),
+    var(--border) calc(100% - 1px)
+  );
+}
+
+.trendBarFill,
+.trendBarFillAccent {
+  width: 100%;
+  min-height: 0;
+}
+
+.trendValue {
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trendLabel {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.homeNewButton {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.orderOverdueCard {
+  border-color: color-mix(in srgb, var(--warning) 50%, var(--border));
+  background: color-mix(in srgb, var(--warning-soft) 70%, var(--surface));
+}
+
+.textLink {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.inlineIcon {
+  display: inline-block;
+  vertical-align: -0.15em;
+}
+
 .shortcutGrid {
   display: grid;
   gap: var(--space-3);
@@ -1070,6 +1321,18 @@
   .shortcutGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .alertGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 1024px) {
@@ -1078,6 +1341,10 @@
   }
 
   .shortcutGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .kpiGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

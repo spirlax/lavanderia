@@ -1,88 +1,134 @@
+import Link from "next/link";
+
 import {
-  CashPermissionForm,
   CloseCashSessionForm,
   OpenCashSessionForm,
 } from "@/components/cash/cash-actions";
 import { CashSummary } from "@/components/cash/cash-summary";
+import { Alert } from "@/components/ui/alert";
 import styles from "@/components/ui/ui.module.css";
 import {
+  getCashSessionByBusinessDate,
   getCashSessionSummary,
+  getOpenCashSession,
   listCashOperators,
   listCashSessions,
 } from "@/lib/cash/queries";
+import { limaTodayDate } from "@/lib/orders/datetime";
 
 export default async function AdminCashPage() {
-  const [sessions, operators] = await Promise.all([
+  const today = limaTodayDate();
+  const [openSession, todaySession, sessions, operators] = await Promise.all([
+    getOpenCashSession(),
+    getCashSessionByBusinessDate(today),
     listCashSessions(),
     listCashOperators(),
   ]);
-  const summaries = await Promise.all(
-    sessions.map((session) => getCashSessionSummary(session)),
-  );
-  const current = summaries.find(
-    (summary) => summary.session.status === "open",
-  );
-  const closed = summaries.filter(
-    (summary) => summary.session.status === "closed",
+
+  const session = openSession ?? todaySession;
+  const summary = session ? await getCashSessionSummary(session) : null;
+  const isOpen = openSession !== null;
+  const isClosedToday =
+    !isOpen && todaySession !== null && todaySession.status === "closed";
+
+  const historySummaries = await Promise.all(
+    sessions
+      .filter((row) => row.status === "closed")
+      .slice(0, 12)
+      .map((row) => getCashSessionSummary(row)),
   );
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Administración de caja</h1>
+        <h1 className={styles.title}>Supervisión de caja</h1>
         <p className={styles.subtitle}>
-          Supervisa la jornada compartida y asigna la responsabilidad de
-          apertura y cierre.
+          Estado de la jornada, totales y historial. Sin flujo operativo de
+          apertura como acción principal.
         </p>
       </header>
 
-      <section className={`${styles.panel} ${styles.panelStack}`}>
-        <h2 className={styles.sectionTitle}>Permiso de responsable</h2>
-        {operators.map((operator) => (
-          <article key={operator.id} className={styles.card}>
-            <div className={styles.headerRow}>
-              <div>
-                <strong>{operator.full_name}</strong>
-                <p className={styles.help}>
-                  {operator.can_manage_cash_session
-                    ? "Responsable autorizada"
-                    : "Sin permiso de caja"}
-                </p>
-              </div>
-              <CashPermissionForm operator={operator} />
-            </div>
-          </article>
-        ))}
+      <section
+        className={`${styles.panel} ${styles.panelStack}`}
+        aria-labelledby="cash-today"
+      >
+        <div className={styles.headerRow}>
+          <h2 id="cash-today" className={styles.sectionTitle}>
+            Jornada de hoy
+          </h2>
+          <span
+            className={`${styles.badge} ${
+              isOpen
+                ? styles.badgeActive
+                : isClosedToday
+                  ? styles.badgeInactive
+                  : styles.badgeInfo
+            }`}
+          >
+            {isOpen ? "Abierta" : isClosedToday ? "Cerrada" : "Sin apertura"}
+          </span>
+        </div>
+
+        {summary ? (
+          <CashSummary summary={summary} />
+        ) : (
+          <Alert tone="info">
+            Aún no hay jornada registrada para hoy.
+          </Alert>
+        )}
       </section>
 
-      {current ? (
+      {isOpen && summary && openSession ? (
         <section className={`${styles.panel} ${styles.panelStack}`}>
-          <CashSummary summary={current} />
           <h2 className={styles.sectionTitle}>Cierre administrativo</h2>
+          <p className={styles.help}>
+            Reserva para supervisión. El cierre habitual lo realiza la
+            operadora responsable en su área.
+          </p>
           <CloseCashSessionForm
-            sessionId={current.session.id}
-            expectedCash={Number(current.session.expected_cash)}
+            sessionId={openSession.id}
+            expectedCash={Number(summary.session.expected_cash)}
           />
         </section>
-      ) : (
-        <section className={`${styles.panel} ${styles.panelStack}`}>
-          <h2 className={styles.sectionTitle}>Abrir caja</h2>
+      ) : null}
+
+      {!isOpen && !isClosedToday ? (
+        <details className={`${styles.panel} ${styles.panelStack}`}>
+          <summary className={styles.sectionTitle}>
+            Apertura excepcional
+          </summary>
+          <p className={styles.help}>
+            Usa solo si la operadora responsable no puede abrir desde su
+            sesión.
+          </p>
           <OpenCashSessionForm operators={operators} />
-        </section>
-      )}
+        </details>
+      ) : null}
+
+      {isClosedToday ? (
+        <Alert tone="info">La jornada de hoy ya fue cerrada.</Alert>
+      ) : null}
 
       <section className={styles.panelStack}>
-        <h2 className={styles.sectionTitle}>Jornadas anteriores</h2>
-        {closed.length === 0 ? (
+        <h2 className={styles.sectionTitle}>Historial de jornadas</h2>
+        {historySummaries.length === 0 ? (
           <p className={styles.help}>Aún no hay jornadas cerradas.</p>
         ) : (
-          closed.map((summary) => (
-            <article key={summary.session.id} className={styles.panel}>
-              <CashSummary summary={summary} compact />
+          historySummaries.map((item) => (
+            <article key={item.session.id} className={styles.panel}>
+              <CashSummary summary={item} compact />
             </article>
           ))
         )}
       </section>
+
+      <p className={styles.help}>
+        La autorización de responsable de caja se gestiona en{" "}
+        <Link href="/admin/pin" className={styles.textLink}>
+          Operadoras y PIN
+        </Link>
+        .
+      </p>
     </div>
   );
 }

@@ -52,6 +52,19 @@ export async function listCashSessions(limit = 30): Promise<CashSessionRow[]> {
   return data ?? [];
 }
 
+export async function getCashSessionByBusinessDate(
+  businessDate: string,
+): Promise<CashSessionRow | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("cash_sessions")
+    .select("*")
+    .eq("business_date", businessDate)
+    .maybeSingle();
+  if (error) throw new Error("No se pudo consultar la jornada de caja.");
+  return data;
+}
+
 export async function getCashSessionSummary(
   session: CashSessionRow,
 ): Promise<CashSessionSummary> {

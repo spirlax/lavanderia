@@ -1,6 +1,11 @@
+import { redirect } from "next/navigation";
+
 import { NewOrderForm } from "@/components/orders/new-order-form";
 import styles from "@/components/ui/ui.module.css";
-import { canManageServices } from "@/lib/auth/authorization";
+import {
+  canAccessAdmin,
+  canManageServices,
+} from "@/lib/auth/authorization";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
 import {
   listActiveCustomersForOrder,
@@ -10,6 +15,10 @@ import { getOpenCashSession } from "@/lib/cash/queries";
 
 export default async function NewOrderPage() {
   const profile = await requireCurrentProfile();
+  if (canAccessAdmin(profile.role)) {
+    redirect("/admin/pedidos");
+  }
+
   const [customers, services, cashSession] = await Promise.all([
     listActiveCustomersForOrder(),
     listActiveServicesForOrder(),

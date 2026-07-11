@@ -35,6 +35,8 @@
   --process: #5c4a1a;
   --process-soft: #f5efd9;
   --muted: #4a5560;
+  --accent-bi: #5b3d8f;
+  --accent-bi-soft: #efe8f8;
 
   /* Elevation */
   --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);

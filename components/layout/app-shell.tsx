@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   CirclePlus,
+  ClipboardList,
   Home,
   KeyRound,
   LayoutDashboard,
@@ -29,10 +30,7 @@ import {
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import styles from "@/components/layout/app-shell.module.css";
-import {
-  canAccessAdmin,
-  canUseOperationalArea,
-} from "@/lib/auth/authorization";
+import { canAccessAdmin } from "@/lib/auth/authorization";
 import type { Profile } from "@/lib/auth/types";
 
 type AppShellProps = {
@@ -52,10 +50,6 @@ type NavGroup = {
   title?: string;
   links: NavLink[];
 };
-
-function isAdminArea(pathname: string): boolean {
-  return pathname === "/admin" || pathname.startsWith("/admin/");
-}
 
 function isLinkActive(pathname: string, link: NavLink): boolean {
   if (link.match === "exact") {
@@ -130,22 +124,14 @@ function AdminNavGroups({
       ],
     },
     {
-      title: "Operación",
+      title: "Gestión",
       links: [
-        { href: "/", label: "Inicio", icon: Home, match: "exact" },
         {
-          href: "/nuevo",
-          label: "Nuevo pedido",
-          icon: CirclePlus,
+          href: "/admin/pedidos",
+          label: "Pedidos",
+          icon: ClipboardList,
           match: "prefix",
         },
-        { href: "/buscar", label: "Buscar", icon: Search, match: "prefix" },
-        { href: "/clientes", label: "Clientes", icon: Users, match: "prefix" },
-      ],
-    },
-    {
-      title: "Caja y finanzas",
-      links: [
         {
           href: "/admin/caja",
           label: "Caja",
@@ -182,7 +168,7 @@ function AdminNavGroups({
       links: [
         {
           href: "/admin/pin",
-          label: "PIN",
+          label: "Operadoras y PIN",
           icon: KeyRound,
           match: "prefix",
         },
@@ -222,12 +208,8 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const pathname = usePathname();
-  const showAdminChrome =
-    canAccessAdmin(profile.role) && isAdminArea(pathname);
-  const showOperationalChrome =
-    canUseOperationalArea(profile.role) && !showAdminChrome;
 
-  if (showAdminChrome) {
+  if (canAccessAdmin(profile.role)) {
     return (
       <AdminShell
         profile={profile}
@@ -239,19 +221,15 @@ export function AppShell({
     );
   }
 
-  if (showOperationalChrome) {
-    return (
-      <OperationalShell
-        profile={profile}
-        pathname={pathname}
-        cashSessionOpen={cashSessionOpen}
-      >
-        {children}
-      </OperationalShell>
-    );
-  }
-
-  return <div className={styles.shell}>{children}</div>;
+  return (
+    <OperationalShell
+      profile={profile}
+      pathname={pathname}
+      cashSessionOpen={cashSessionOpen}
+    >
+      {children}
+    </OperationalShell>
+  );
 }
 
 function AdminShell({
@@ -393,7 +371,6 @@ function OperationalShell({
   const menuOpen = menuPath === pathname;
   const menuRef = useRef<HTMLDivElement>(null);
   const morePanelId = useId();
-  const isAdmin = canAccessAdmin(profile.role);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -464,15 +441,6 @@ function OperationalShell({
                 active={isLinkActive(pathname, link)}
               />
             ))}
-            {isAdmin ? (
-              <NavItem
-                href="/admin"
-                label="Panel"
-                icon={LayoutDashboard}
-                active={false}
-                className={styles.navLinkPrimary}
-              />
-            ) : null}
             <LogoutButton />
           </nav>
         </div>
@@ -486,11 +454,6 @@ function OperationalShell({
             <CashStatusChip open={cashSessionOpen} />
           </div>
         </div>
-        {isAdmin ? (
-          <Link href="/admin" className={styles.mobileAdminLink}>
-            Panel
-          </Link>
-        ) : null}
       </header>
 
       <main className={styles.shellOperationalMain}>{children}</main>
@@ -499,6 +462,7 @@ function OperationalShell({
         {primaryLinks.map((link) => {
           const active = isLinkActive(pathname, link);
           const Icon = link.icon;
+          const isNuevo = link.href === "/nuevo";
 
           return (
             <Link
@@ -506,6 +470,7 @@ function OperationalShell({
               href={link.href}
               className={[
                 styles.bottomNavLink,
+                isNuevo ? styles.bottomNavLinkPrimary : "",
                 active ? styles.bottomNavLinkActive : "",
               ]
                 .filter(Boolean)

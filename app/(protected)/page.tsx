@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import styles from "@/components/ui/ui.module.css";
 import orderStyles from "@/components/orders/orders.module.css";
+import { canAccessAdmin } from "@/lib/auth/authorization";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
 import { formatCurrency } from "@/lib/format/money";
 import { formatDateTimeLima } from "@/lib/orders/datetime";
@@ -11,6 +13,10 @@ import { listActiveOrders } from "@/lib/orders/queries";
 
 export default async function OperationalHomePage() {
   const profile = await requireCurrentProfile();
+  if (canAccessAdmin(profile.role)) {
+    redirect("/admin");
+  }
+
   const orders = await listActiveOrders();
   const readyOrders = orders.filter((order) => order.status === "ready");
   const inProcessOrders = orders.filter(
@@ -30,6 +36,12 @@ export default async function OperationalHomePage() {
             Cola del día · {profile.full_name}
           </p>
         </div>
+        <Link
+          href="/nuevo"
+          className={`${styles.button} ${styles.buttonPrimary} ${styles.homeNewButton}`}
+        >
+          Nuevo pedido
+        </Link>
       </header>
 
       <div className={styles.queueSummary} aria-label="Resumen de cola">
@@ -50,21 +62,21 @@ export default async function OperationalHomePage() {
       <section className={styles.panelStack} aria-labelledby="active-orders">
         <div className={styles.header}>
           <h2 id="active-orders" className={styles.sectionTitle}>
-            Pedidos activos
+            Pedidos recientes
           </h2>
           <p className={styles.subtitle}>
-            Los pedidos listos aparecen primero para entregar con prioridad.
+            Prioridad a listos para entregar. Cliente, hora e importe a la vista.
           </p>
         </div>
 
         {orders.length === 0 ? (
           <EmptyState
-            title="No hay pedidos activos"
-            description="Usa Nuevo en la barra inferior para registrar el primero del día."
+            title="Cola vacía"
+            description="Registra el primer pedido del día."
             action={
               <Link
                 href="/nuevo"
-                className={`${styles.button} ${styles.buttonPrimary}`}
+                className={`${styles.button} ${styles.buttonPrimary} ${styles.buttonAction}`}
               >
                 Nuevo pedido
               </Link>
@@ -96,14 +108,18 @@ export default async function OperationalHomePage() {
                   </p>
                   <div className={orderStyles.orderCardMeta}>
                     <span className={orderStyles.orderCardMetaPrimary}>
-                      Programado: {formatDateTimeLima(order.scheduled_for)}
+                      {formatDateTimeLima(order.scheduled_for, {
+                        timeStyle: "short",
+                      })}
+                    </span>
+                    <span className={orderStyles.orderCardMetaPrimary}>
+                      {formatCurrency(order.total)}
                     </span>
                     <span>{order.customer?.phone ?? "Sin teléfono"}</span>
-                    <span>Total: {formatCurrency(order.total)}</span>
                   </div>
                   {balanceDue > 0 ? (
                     <p className={`${styles.balanceDue} ${styles.balanceDueWarn}`}>
-                      Saldo pendiente: {formatCurrency(balanceDue)}
+                      Saldo: {formatCurrency(balanceDue)}
                     </p>
                   ) : (
                     <p className={styles.balanceClear}>Saldo pagado</p>
