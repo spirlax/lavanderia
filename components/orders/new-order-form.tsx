@@ -11,7 +11,11 @@ import {
 import { Alert } from "@/components/ui/alert";
 import orderStyles from "@/components/orders/orders.module.css";
 import styles from "@/components/ui/ui.module.css";
-import type { ActionResult, ServiceUnit } from "@/lib/auth/types";
+import type {
+  ActionResult,
+  PaymentMethod,
+  ServiceUnit,
+} from "@/lib/auth/types";
 import { createCustomer } from "@/lib/customers/actions";
 import { formatCurrency } from "@/lib/format/money";
 import { getDefaultScheduledForLocal } from "@/lib/orders/datetime";
@@ -44,6 +48,7 @@ type NewOrderFormProps = {
   customers: CustomerOption[];
   services: ServiceOption[];
   canManageServices: boolean;
+  hasOpenCashSession: boolean;
 };
 
 const initialOrderState: CreateOrderActionResult = {
@@ -68,6 +73,7 @@ export function NewOrderForm({
   customers: initialCustomers,
   services,
   canManageServices,
+  hasOpenCashSession,
 }: NewOrderFormProps) {
   const formId = useId();
   const [operationId] = useState(createOperationId);
@@ -81,6 +87,9 @@ export function NewOrderForm({
     initialCustomers.length === 0,
   );
   const [scheduledFor, setScheduledFor] = useState(getDefaultScheduledForLocal);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [cashReceived, setCashReceived] = useState("");
+  const [paymentReference, setPaymentReference] = useState("");
   const [lines, setLines] = useState<DraftLine[]>([
     { key: createLineKey(), service_id: "", quantity: "1" },
   ]);
@@ -155,6 +164,27 @@ export function NewOrderForm({
       return sum + service.current_price * quantity;
     }, 0);
   }, [lines, services]);
+
+  const estimatedChange = Math.max(
+    0,
+    (Number(cashReceived) || 0) - estimatedSubtotal,
+  );
+
+  if (!hasOpenCashSession) {
+    return (
+      <div className={styles.panelStack}>
+        <Alert tone="info">
+          La caja del día debe estar abierta para crear y cobrar un pedido.
+        </Alert>
+        <Link
+          href="/caja"
+          className={`${styles.button} ${styles.buttonPrimary} ${styles.buttonAction}`}
+        >
+          Ir a Caja del día
+        </Link>
+      </div>
+    );
+  }
 
   if (services.length === 0) {
     return (
@@ -433,7 +463,68 @@ export function NewOrderForm({
           </section>
 
           <section className={`${styles.panel} ${styles.panelStack}`}>
-            <h2 className={styles.cardTitle}>Entrega programada</h2>
+            <h2 className={styles.cardTitle}>Pago completo</h2>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor={`${formId}-payment-method`}>
+                Método de pago
+              </label>
+              <select
+                id={`${formId}-payment-method`}
+                className={styles.select}
+                value={paymentMethod}
+                onChange={(event) => {
+                  const method = event.target.value as PaymentMethod;
+                  setPaymentMethod(method);
+                  setCashReceived("");
+                  setPaymentReference("");
+                }}
+              >
+                <option value="cash">Efectivo</option>
+                <option value="yape">Yape</option>
+                <option value="plin">Plin</option>
+              </select>
+            </div>
+
+            {paymentMethod === "cash" ? (
+              <>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor={`${formId}-cash-received`}>
+                    Efectivo recibido
+                  </label>
+                  <input
+                    id={`${formId}-cash-received`}
+                    className={styles.input}
+                    inputMode="decimal"
+                    value={cashReceived}
+                    onChange={(event) => setCashReceived(event.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div className={orderStyles.changeDisplay} aria-live="polite">
+                  <span>Vuelto estimado</span>
+                  <strong>{formatCurrency(estimatedChange)}</strong>
+                </div>
+              </>
+            ) : (
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor={`${formId}-payment-reference`}>
+                  Referencia opcional
+                </label>
+                <input
+                  id={`${formId}-payment-reference`}
+                  className={styles.input}
+                  value={paymentReference}
+                  onChange={(event) => setPaymentReference(event.target.value)}
+                  maxLength={80}
+                  autoComplete="off"
+                />
+              </div>
+            )}
+          </section>
+
+          <section className={`${styles.panel} ${styles.panelStack}`}>
+            <h2 className={styles.cardTitle}>Fecha programada</h2>
             <div className={styles.field}>
               <label className={styles.label} htmlFor={`${formId}-scheduled`}>
                 Fecha y hora (hora de Lima)
@@ -479,6 +570,13 @@ export function NewOrderForm({
                 value={selectedCustomerId}
               />
               <input type="hidden" name="scheduled_for" value={scheduledFor} />
+              <input type="hidden" name="payment_method" value={paymentMethod} />
+              <input type="hidden" name="cash_received" value={cashReceived} />
+              <input
+                type="hidden"
+                name="payment_reference"
+                value={paymentReference}
+              />
               <input
                 type="hidden"
                 name="items"
@@ -504,10 +602,11 @@ export function NewOrderForm({
                 disabled={
                   orderPending ||
                   !selectedCustomerId ||
-                  lines.every((line) => !line.service_id)
+                  lines.every((line) => !line.service_id) ||
+                  (paymentMethod === "cash" && !cashReceived)
                 }
               >
-                {orderPending ? "Confirmando pedido…" : "Confirmar pedido"}
+                {orderPending ? "Guardando pedido y pago…" : "Guardar pedido y pago"}
               </button>
             </form>
           </div>

@@ -152,6 +152,12 @@ function AdminShell({
         active={pathname.startsWith("/admin/servicios")}
         onNavigate={close}
       />
+      <NavItem
+        href="/admin/caja"
+        label="Caja"
+        active={pathname.startsWith("/admin/caja")}
+        onNavigate={close}
+      />
     </>
   );
 
@@ -312,6 +318,11 @@ function OperationalShell({
               label="Clientes"
               active={pathname.startsWith("/clientes")}
             />
+            <NavItem
+              href="/caja"
+              label="Caja"
+              active={pathname.startsWith("/caja")}
+            />
             {isAdmin ? (
               <NavItem
                 href="/admin"
@@ -367,7 +378,9 @@ function OperationalShell({
             type="button"
             className={[
               styles.bottomNavLink,
-              menuOpen || pathname.startsWith("/clientes")
+              menuOpen ||
+              pathname.startsWith("/clientes") ||
+              pathname.startsWith("/caja")
                 ? styles.bottomNavLinkActive
                 : "",
             ]
@@ -389,6 +402,13 @@ function OperationalShell({
                 onClick={() => setMenuPath(null)}
               >
                 Clientes
+              </Link>
+              <Link
+                href="/caja"
+                className={styles.secondaryItem}
+                onClick={() => setMenuPath(null)}
+              >
+                Caja del día
               </Link>
               <LogoutButton className={styles.secondaryLogout} />
             </div>

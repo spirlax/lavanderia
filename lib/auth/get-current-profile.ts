@@ -14,7 +14,7 @@ export async function getProfileForUser(
 ): Promise<CurrentAuthenticationResult> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role, is_active")
+    .select("id, full_name, role, is_active, can_manage_cash_session")
     .eq("id", userId)
     .maybeSingle();
 

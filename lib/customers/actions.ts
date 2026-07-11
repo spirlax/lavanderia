@@ -12,6 +12,7 @@ import {
 } from "@/lib/actions/result";
 import {
   canCreateCustomer,
+  canSetCustomerActive,
   canUpdateCustomer,
 } from "@/lib/auth/authorization";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
@@ -116,7 +117,6 @@ export async function updateCustomer(
     phone: readOptionalString(formData, "phone"),
     email: readOptionalString(formData, "email"),
     notes: readOptionalString(formData, "notes"),
-    is_active: readBoolean(formData, "is_active"),
   });
 
   if (!parsed.success) {
@@ -134,7 +134,6 @@ export async function updateCustomer(
       phone: parsed.data.phone,
       email: parsed.data.email,
       notes: parsed.data.notes,
-      is_active: parsed.data.is_active,
     })
     .eq("id", id)
     .select("id")
@@ -161,7 +160,7 @@ export async function setCustomerActive(
 ): Promise<ActionResult> {
   const profile = await requireCurrentProfile();
 
-  if (!canUpdateCustomer(profile.role)) {
+  if (!canSetCustomerActive(profile.role)) {
     return actionFailure(FRIENDLY_PERMISSION_MESSAGE);
   }
 
@@ -175,12 +174,10 @@ export async function setCustomerActive(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("customers")
-    .update({ is_active: parsed.data.is_active })
-    .eq("id", parsed.data.id)
-    .select("id")
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("set_customer_active", {
+    p_customer_id: parsed.data.id,
+    p_is_active: parsed.data.is_active,
+  });
 
   if (error) {
     if (isPermissionOrRlsError(error)) {

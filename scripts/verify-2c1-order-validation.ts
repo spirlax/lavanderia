@@ -36,6 +36,11 @@ const serviceA = "22222222-2222-4222-8222-222222222222";
 const serviceB = "33333333-3333-4333-8333-333333333333";
 const operationId = "44444444-4444-4444-8444-444444444444";
 const orderId = "55555555-5555-4555-8555-555555555555";
+const cashPayment = {
+  method: "cash" as const,
+  cash_received: "100",
+  reference: "",
+};
 
 function expectFail(input: unknown, messageIncludes?: string) {
   const result = createOrderSchema.safeParse(input);
@@ -76,6 +81,7 @@ expectFail({
   scheduled_for: "2026-07-10T15:30",
   operation_id: operationId,
   items: [],
+  ...cashPayment,
 });
 
 // quantity zero
@@ -84,6 +90,7 @@ expectFail({
   scheduled_for: "2026-07-10T15:30",
   operation_id: operationId,
   items: [{ service_id: serviceA, quantity: "0" }],
+  ...cashPayment,
 });
 
 // negative quantity
@@ -92,6 +99,7 @@ expectFail({
   scheduled_for: "2026-07-10T15:30",
   operation_id: operationId,
   items: [{ service_id: serviceA, quantity: "-1" }],
+  ...cashPayment,
 });
 
 // duplicate services
@@ -103,6 +111,7 @@ expectFail({
     { service_id: serviceA, quantity: "1" },
     { service_id: serviceA, quantity: "2" },
   ],
+  ...cashPayment,
 });
 
 // valid payload strips to service_id + quantity only for RPC
@@ -114,6 +123,7 @@ const ok = createOrderSchema.safeParse({
     { service_id: serviceA, quantity: "1.5" },
     { service_id: serviceB, quantity: "2" },
   ],
+  ...cashPayment,
 });
 assert.equal(ok.success, true);
 if (ok.success) {
@@ -152,9 +162,9 @@ assert.match(
 
 assert.match(
   mapTransitionOrderError({
-    message: "operator cannot deliver an order with outstanding balance",
+    message: "order must be fully paid before starting service",
   }),
-  /saldo/i,
+  /pagado completamente/i,
 );
 assert.match(
   mapTransitionOrderError({ message: "cancellation requires a reason" }),
@@ -188,10 +198,7 @@ if (searchOk.success) {
 
 // role transition matrix (UI + server gate)
 const operatorReceived = listAvailableTransitions("operator", "received", 9);
-assert.deepEqual(
-  operatorReceived.map((a) => a.toStatus),
-  ["in_process"],
-);
+assert.deepEqual(operatorReceived, []);
 
 const operatorReadyWithBalance = listAvailableTransitions(
   "operator",
@@ -201,10 +208,9 @@ const operatorReadyWithBalance = listAvailableTransitions(
 assert.equal(operatorReadyWithBalance.length, 0);
 
 const adminReadyWithBalance = listAvailableTransitions("admin", "ready", 9);
-assert.ok(
-  adminReadyWithBalance.some(
-    (a) => a.toStatus === "delivered" && a.requiresReason,
-  ),
+assert.equal(
+  adminReadyWithBalance.some((a) => a.toStatus === "delivered"),
+  false,
 );
 assert.ok(
   adminReadyWithBalance.some(
@@ -236,7 +242,7 @@ assert.equal(
     balanceDue: 9,
     reason: "Cliente pagará después",
   }).ok,
-  true,
+  false,
 );
 
 assert.equal(

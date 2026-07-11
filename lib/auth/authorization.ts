@@ -21,8 +21,13 @@ export function canCreateCustomer(role: Role): boolean {
   return role === "admin" || role === "operator";
 }
 
-/** Edición y desactivación de clientes (solo admin). */
+/** Edición de nombre, teléfono, correo y notas (admin y operator). */
 export function canUpdateCustomer(role: Role): boolean {
+  return role === "admin" || role === "operator";
+}
+
+/** Activación y desactivación de clientes (solo admin). */
+export function canSetCustomerActive(role: Role): boolean {
   return role === "admin";
 }
 

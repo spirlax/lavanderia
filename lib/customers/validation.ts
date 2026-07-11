@@ -46,9 +46,7 @@ export const customerCreateSchema = z.object({
   notes: optionalNotesSchema,
 });
 
-export const customerUpdateSchema = customerCreateSchema.extend({
-  is_active: z.boolean(),
-});
+export const customerUpdateSchema = customerCreateSchema;
 
 export const customerActiveSchema = z.object({
   id: z.string().uuid("Identificador de cliente no válido."),

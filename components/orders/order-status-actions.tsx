@@ -68,8 +68,8 @@ export function OrderStatusActions({
   );
 
   const actions = listAvailableTransitions(role, status, balanceDue);
-  const operatorBlockedByBalance =
-    role === "operator" && status === "ready" && balanceDue > 0;
+  const blockedByBalance =
+    balanceDue > 0 && (status === "received" || status === "ready");
   const busy = pending || isRefreshing;
 
   const feedbackMessage = localError ?? (state.message || null);
@@ -112,7 +112,7 @@ export function OrderStatusActions({
     formAction(formData);
   }
 
-  if (actions.length === 0 && !operatorBlockedByBalance) {
+  if (actions.length === 0 && !blockedByBalance) {
     return null;
   }
 
@@ -125,10 +125,10 @@ export function OrderStatusActions({
         Acciones
       </h2>
 
-      {operatorBlockedByBalance ? (
+      {blockedByBalance ? (
         <Alert tone="info">
-          Hay un saldo pendiente de {formatCurrency(balanceDue)}. Un operador no
-          puede entregar hasta que el saldo sea cero.
+          Hay un saldo pendiente de {formatCurrency(balanceDue)}. El pedido no
+          puede iniciar el servicio ni entregarse hasta que el saldo sea cero.
         </Alert>
       ) : null}
 

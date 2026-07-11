@@ -25,6 +25,7 @@ import {
   transitionOrderSchema,
 } from "@/lib/orders/validation";
 import { createClient } from "@/lib/supabase/server";
+import { readPaymentFormData } from "@/lib/payments/validation";
 
 export type CreateOrderActionResult =
   | {
@@ -96,6 +97,7 @@ export async function createOrderAction(
     scheduled_for: formData.get("scheduled_for"),
     operation_id: formData.get("operation_id"),
     items: rawItems,
+    ...readPaymentFormData(formData),
   });
 
   if (!parsed.success) {
@@ -111,6 +113,9 @@ export async function createOrderAction(
     p_customer_id: parsed.data.customer_id,
     p_scheduled_for: parsed.data.scheduled_for,
     p_items: toCreateOrderRpcItems(parsed.data.items),
+    p_payment_method: parsed.data.method,
+    p_cash_received: parsed.data.cash_received,
+    p_payment_reference: parsed.data.reference,
     p_operation_id: parsed.data.operation_id,
   });
 

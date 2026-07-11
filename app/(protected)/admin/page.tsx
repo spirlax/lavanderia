@@ -41,6 +41,12 @@ export default async function AdminPage() {
             Consultar, crear, editar, activar y desactivar clientes.
           </p>
         </Link>
+        <Link href="/admin/caja" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>Caja compartida</h2>
+          <p className={styles.linkCardText}>
+            Supervisar apertura, pagos, cierres, diferencias y responsables.
+          </p>
+        </Link>
         <Link href="/admin/servicios" className={styles.linkCard}>
           <h2 className={styles.linkCardTitle}>Servicios y precios</h2>
           <p className={styles.linkCardText}>

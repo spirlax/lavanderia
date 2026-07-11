@@ -25,6 +25,18 @@ export function mapCreateOrderError(error: {
     return "El cliente no existe o no está activo.";
   }
 
+  if (message.includes("open cash session")) {
+    return "Abre la caja del día antes de crear pedidos.";
+  }
+
+  if (message.includes("cash received")) {
+    return "El efectivo recibido debe cubrir el total completo.";
+  }
+
+  if (message.includes("new order total must be greater")) {
+    return "El total del pedido debe ser mayor que cero.";
+  }
+
   if (message.includes("inactive or missing service")) {
     return "Uno de los servicios no existe o no está activo.";
   }
@@ -98,13 +110,10 @@ export function mapTransitionOrderError(error: {
   }
 
   if (
-    message.includes("operator cannot deliver an order with outstanding balance")
+    message.includes("fully paid before starting") ||
+    message.includes("fully paid before delivery")
   ) {
-    return "No puedes entregar un pedido con saldo pendiente. Solicita apoyo a un administrador.";
-  }
-
-  if (message.includes("delivery with outstanding balance requires a reason")) {
-    return "Indica un motivo para entregar con saldo pendiente.";
+    return "El pedido debe estar pagado completamente para continuar.";
   }
 
   if (message.includes("only admin can return a ready order to in_process")) {

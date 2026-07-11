@@ -19,16 +19,18 @@ export default async function CustomersPage({
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
   const customers = await listCustomers(query);
-  const canManage = canUpdateCustomer(profile.role);
+  const canEdit = canUpdateCustomer(profile.role);
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Clientes</h1>
         <p className={styles.subtitle}>
-          {canManage
+          {profile.role === "admin"
             ? "Puedes consultar, crear, editar, activar y desactivar clientes."
-            : "Puedes consultar y crear clientes. Solo el Administrador puede editar, activar o desactivar."}
+            : canEdit
+              ? "Puedes consultar, crear y editar los datos de clientes."
+              : "Puedes consultar y crear clientes."}
         </p>
       </header>
 
