@@ -1,10 +1,27 @@
-# Lavandería
+# Gestión de lavandería
 
-Proyecto técnico de tesis para mejorar la gestión operativa de una pequeña lavandería.
+Plataforma para la gestión operativa de una MYPE de servicios.
 
 ## Estado
 
-Fase 1: infraestructura, esquema inicial, RLS y autenticación por roles implementados. La aplicación dispone de acceso administrativo y operativo protegido; los módulos funcionales comienzan en fases posteriores.
+Implementado:
+
+- autenticación y roles;
+- catálogo de servicios;
+- clientes;
+- creación y búsqueda de pedidos;
+- detalle e historial de pedidos;
+- transiciones de estados;
+- saldo pendiente calculado.
+
+Pendiente:
+
+- pagos;
+- caja;
+- reportes;
+- business intelligence;
+- importaciones históricas;
+- acceso simplificado por PIN para operadoras.
 
 ## Desarrollo local
 

@@ -2,6 +2,27 @@
 
 Cada fase requiere autorización explícita y cierre con `pnpm lint`, `pnpm typecheck` y `pnpm build`.
 
+## Estado actual
+
+Implementado:
+
+- autenticación y roles;
+- catálogo de servicios;
+- clientes;
+- creación y búsqueda de pedidos;
+- detalle e historial de pedidos;
+- transiciones de estados;
+- saldo pendiente calculado.
+
+Pendiente:
+
+- pagos;
+- caja;
+- reportes;
+- business intelligence;
+- importaciones históricas;
+- acceso simplificado por PIN para operadoras.
+
 ## Fase 0 — Inicialización técnica
 
 Completada: scaffold, documentación base, GitHub y Vercel sin Supabase conectado.
@@ -12,15 +33,16 @@ Completada: reglas funcionales, modelo formal, permisos, flujo, pagos/caja, hist
 
 ## Fase 1B — Núcleo de datos y acceso
 
-- Conectar Supabase con autorización previa.
-- Crear migración versionada solo para `profiles`, `customers`, `services`, `orders`, `order_items` y `order_status_history`.
-- Configurar Auth, RLS, políticas y pruebas de autorización para `admin` y `operator`.
-- Inicializar el primer admin mediante procedimiento confirmado.
+Completada: Supabase conectado, núcleo de datos versionado, autenticación, roles, RLS y políticas para `admin` y `operator`.
+
+## Fase 1C — Operación base
+
+Completada: servicios, clientes, creación y búsqueda de pedidos, detalle, historial, transiciones de estados y saldo pendiente calculado.
 
 ## Fase 2 — Pagos y caja
 
 - Crear `cash_sessions`, `payments` y `cash_movements` mediante migración versionada.
-- Implementar saldo, entrega administrativa con deuda, anulaciones y cierre de caja.
+- Registrar pagos contra el saldo calculado e implementar cierres de caja.
 
 ## Fase 3 — Históricos y reportes
 
@@ -36,6 +58,10 @@ Completada: reglas funcionales, modelo formal, permisos, flujo, pagos/caja, hist
 ## Fase 5 — Entidades diferidas
 
 - Evaluar `service_prices`, `cash_registers`, `cash_register_assignments`, `machines`, `system_settings` y `audit_events` según necesidades reales.
+
+## Fase 6 — Acceso simplificado de operadoras
+
+- Evaluar e implementar acceso por PIN sin debilitar la autenticación, autorización ni trazabilidad existentes.
 
 ## Condiciones transversales
 

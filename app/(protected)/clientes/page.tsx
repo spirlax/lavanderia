@@ -27,8 +27,8 @@ export default async function CustomersPage({
         <h1 className={styles.title}>Clientes</h1>
         <p className={styles.subtitle}>
           {canManage
-            ? "Consulta, alta, edición y activación de clientes."
-            : "Consulta y alta de clientes. La edición está reservada a administración."}
+            ? "Puedes consultar, crear, editar, activar y desactivar clientes."
+            : "Puedes consultar y crear clientes. Solo el Administrador puede editar, activar o desactivar."}
         </p>
       </header>
 

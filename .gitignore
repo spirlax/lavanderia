@@ -42,6 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 # temporary / generated scratch files (keep real migrations, tests, scripts)
+repomix-output.xml
 *.tmp
 *.temp
 *.bak

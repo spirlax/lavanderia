@@ -56,7 +56,7 @@ function NavItem({
 }
 
 function roleLabel(role: Profile["role"]): string {
-  return role === "admin" ? "Administrador" : "Operador";
+  return role === "admin" ? "Administrador" : "Operadora";
 }
 
 export function AppShell({ profile, children }: AppShellProps) {
@@ -123,23 +123,34 @@ function AdminShell({
         onNavigate={close}
       />
       <NavItem
-        href="/admin/servicios"
-        label="Servicios"
-        active={pathname.startsWith("/admin/servicios")}
+        href="/"
+        label="Operación"
+        active={false}
+        onNavigate={close}
+      />
+      <NavItem
+        href="/nuevo"
+        label="Nuevo pedido"
+        active={false}
+        onNavigate={close}
+      />
+      <NavItem
+        href="/buscar"
+        label="Buscar pedidos"
+        active={false}
         onNavigate={close}
       />
       <NavItem
         href="/clientes"
         label="Clientes"
-        active={pathname.startsWith("/clientes")}
+        active={false}
         onNavigate={close}
       />
       <NavItem
-        href="/"
-        label="Ir a operación"
-        active={false}
+        href="/admin/servicios"
+        label="Servicios"
+        active={pathname.startsWith("/admin/servicios")}
         onNavigate={close}
-        className={styles.navLinkPrimary}
       />
     </>
   );
@@ -150,7 +161,7 @@ function AdminShell({
         <div className={styles.sidebar}>
           <div className={styles.sidebarInner}>
             <div>
-              <p className={styles.brand}>Lavandería</p>
+              <p className={styles.brand}>Gestión de lavandería</p>
               <p className={styles.userRole}>Panel administrativo</p>
             </div>
             <nav className={styles.sidebarNav}>{links}</nav>
@@ -167,7 +178,7 @@ function AdminShell({
 
       <div className={styles.adminMobileChrome}>
         <header className={styles.mobileHeader}>
-          <p className={styles.brand}>Lavandería</p>
+          <p className={styles.brand}>Gestión de lavandería</p>
           <button
             type="button"
             className={styles.iconButton}
@@ -236,6 +247,7 @@ function OperationalShell({
   const [menuPath, setMenuPath] = useState<string | null>(null);
   const menuOpen = menuPath === pathname;
   const menuRef = useRef<HTMLDivElement>(null);
+  const morePanelId = useId();
   const isAdmin = canAccessAdmin(profile.role);
 
   useEffect(() => {
@@ -277,7 +289,7 @@ function OperationalShell({
       <header className={styles.topOperational}>
         <div className={styles.topOperationalInner}>
           <div>
-            <p className={styles.brand}>Lavandería</p>
+            <p className={styles.brand}>Gestión de lavandería</p>
             <p className={styles.userRole}>
               {profile.full_name} · {roleLabel(profile.role)}
             </p>
@@ -315,47 +327,14 @@ function OperationalShell({
 
       <header className={styles.mobileHeader}>
         <div>
-          <p className={styles.brand}>Lavandería</p>
+          <p className={styles.brand}>Gestión de lavandería</p>
           <p className={styles.userRole}>{profile.full_name}</p>
         </div>
-        <div className={styles.secondaryMenu} ref={menuRef}>
-          <button
-            type="button"
-            className={styles.iconButton}
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            onClick={() =>
-              setMenuPath((current) => (current === pathname ? null : pathname))
-            }
-          >
-            Más
-          </button>
-          {menuOpen ? (
-            <div className={`${styles.secondaryPanel} ${styles.secondaryPanelTop}`} role="menu">
-              <Link
-                href="/clientes"
-                className={styles.secondaryItem}
-                role="menuitem"
-                onClick={() => setMenuPath(null)}
-              >
-                Clientes
-              </Link>
-              {isAdmin ? (
-                <Link
-                  href="/admin"
-                  className={styles.secondaryItem}
-                  role="menuitem"
-                  onClick={() => setMenuPath(null)}
-                >
-                  Volver al panel administrativo
-                </Link>
-              ) : null}
-              <div className={styles.secondaryItem}>
-                <LogoutButton />
-              </div>
-            </div>
-          ) : null}
-        </div>
+        {isAdmin ? (
+          <Link href="/admin" className={styles.mobileAdminLink}>
+            Panel
+          </Link>
+        ) : null}
       </header>
 
       <main className={styles.shellOperationalMain}>{children}</main>
@@ -383,6 +362,38 @@ function OperationalShell({
             </Link>
           );
         })}
+        <div className={styles.secondaryMenu} ref={menuRef}>
+          <button
+            type="button"
+            className={[
+              styles.bottomNavLink,
+              menuOpen || pathname.startsWith("/clientes")
+                ? styles.bottomNavLinkActive
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            aria-expanded={menuOpen}
+            aria-controls={morePanelId}
+            onClick={() =>
+              setMenuPath((current) => (current === pathname ? null : pathname))
+            }
+          >
+            Más
+          </button>
+          {menuOpen ? (
+            <div id={morePanelId} className={styles.secondaryPanel}>
+              <Link
+                href="/clientes"
+                className={styles.secondaryItem}
+                onClick={() => setMenuPath(null)}
+              >
+                Clientes
+              </Link>
+              <LogoutButton className={styles.secondaryLogout} />
+            </div>
+          ) : null}
+        </div>
       </nav>
     </div>
   );
