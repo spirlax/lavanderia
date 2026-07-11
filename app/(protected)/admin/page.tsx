@@ -1,32 +1,41 @@
-import { LogoutButton } from "@/components/auth/logout-button";
+import Link from "next/link";
+
+import styles from "@/components/ui/ui.module.css";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
 
 export default async function AdminPage() {
   const profile = await requireCurrentProfile();
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-xl space-y-5 rounded-xl border border-zinc-200 p-8 shadow-sm">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Panel administrativo
-          </h1>
-          <p className="text-zinc-600">
-            Acceso exclusivo para administrador
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Panel administrativo</h1>
+        <p className={styles.subtitle}>
+          Hola, {profile.full_name}. Gestiona el catálogo y vuelve a operación
+          cuando lo necesites.
+        </p>
+      </header>
+
+      <div className={styles.gridCards}>
+        <Link href="/admin/servicios" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>Servicios</h2>
+          <p className={styles.linkCardText}>
+            Crear, editar y activar o desactivar el catálogo de servicios.
           </p>
-        </div>
-        <dl className="grid gap-2 text-sm">
-          <div>
-            <dt className="font-medium text-zinc-500">Usuario</dt>
-            <dd>{profile.full_name}</dd>
-          </div>
-          <div>
-            <dt className="font-medium text-zinc-500">Rol</dt>
-            <dd>{profile.role}</dd>
-          </div>
-        </dl>
-        <LogoutButton />
-      </section>
-    </main>
+        </Link>
+        <Link href="/clientes" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>Clientes</h2>
+          <p className={styles.linkCardText}>
+            Consultar, crear y administrar la ficha de clientes.
+          </p>
+        </Link>
+        <Link href="/" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>Operación</h2>
+          <p className={styles.linkCardText}>
+            Entrar al área operativa para el trabajo diario.
+          </p>
+        </Link>
+      </div>
+    </div>
   );
 }

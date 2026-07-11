@@ -40,3 +40,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary / generated scratch files (keep real migrations, tests, scripts)
+*.tmp
+*.temp
+*.bak
+*.orig
+*~
+*.swp
+Thumbs.db
+supabase/.temp/
+supabase/.branches/
+*.sql.backup
+*.sql.tmp
+.tmp/
+.temp/
+.cache/

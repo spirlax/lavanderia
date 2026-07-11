@@ -1,11 +1,20 @@
-import { logoutAction } from "@/lib/auth/actions";
+"use client";
 
-export function LogoutButton() {
+import { logoutAction } from "@/lib/auth/actions";
+import styles from "@/components/ui/ui.module.css";
+
+type LogoutButtonProps = {
+  className?: string;
+};
+
+export function LogoutButton({ className }: LogoutButtonProps) {
   return (
     <form action={logoutAction}>
       <button
         type="submit"
-        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+        className={[styles.button, styles.buttonSecondary, className]
+          .filter(Boolean)
+          .join(" ")}
       >
         Cerrar sesión
       </button>

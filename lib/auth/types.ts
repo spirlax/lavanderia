@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const roleSchema = z.enum(["admin", "operator"]);
+import type { Enums } from "@/lib/supabase/database.types";
+import { Constants } from "@/lib/supabase/database.types";
+
+export type Role = Enums<"user_role">;
+export type ServiceUnit = Enums<"service_unit">;
+export type OrderStatus = Enums<"order_status">;
+export type OrderSource = Enums<"order_source">;
+
+export const roleSchema = z.enum(Constants.public.Enums.user_role);
 
 export const profileSchema = z.object({
   id: z.string().uuid(),
@@ -9,7 +17,6 @@ export const profileSchema = z.object({
   is_active: z.literal(true),
 });
 
-export type Role = z.infer<typeof roleSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 
 export type CurrentAuthenticationResult =
@@ -25,3 +32,7 @@ export type LoginActionState = {
     password?: string;
   };
 };
+
+export type ActionResult<TFieldErrors extends Record<string, string> = Record<string, string>> =
+  | { success: true; message: string; customerId?: string }
+  | { success: false; message: string; fieldErrors?: TFieldErrors };
