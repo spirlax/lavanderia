@@ -189,13 +189,13 @@ export function NewOrderForm({
     return (
       <div className={styles.panelStack}>
         <Alert tone="info">
-          La caja del día debe estar abierta para crear y cobrar un pedido.
+          La caja debe estar abierta para registrar y cobrar pedidos.
         </Alert>
         <Link
           href="/caja"
           className={`${styles.button} ${styles.buttonPrimary} ${styles.buttonAction}`}
         >
-          Ir a Caja del día
+          Ir a Caja
         </Link>
       </div>
     );
