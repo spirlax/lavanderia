@@ -36,7 +36,7 @@ returns text
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_year integer;
   v_next integer;
@@ -62,7 +62,7 @@ begin
     pg_catalog.lpad(v_next::text, 6, '0')
   );
 end;
-$$;
+$function$;
 
 revoke all privileges on function private.next_platform_order_number()
   from public, anon, authenticated;
@@ -93,7 +93,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_actor_id uuid := (select auth.uid());
   v_actor_role public.user_role;
@@ -472,7 +472,7 @@ begin
 
   return;
 end;
-$$;
+$function$;
 
 revoke all privileges on function private.create_platform_order(uuid, timestamptz, jsonb, uuid)
   from public, anon, authenticated;
@@ -498,7 +498,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $function$
 declare
   v_actor_id uuid := (select auth.uid());
   v_actor_role public.user_role;
@@ -747,7 +747,7 @@ begin
 
   return;
 end;
-$$;
+$function$;
 
 revoke all privileges on function private.transition_order_status(uuid, public.order_status, uuid, text)
   from public, anon, authenticated;
@@ -777,7 +777,7 @@ language sql
 volatile
 security invoker
 set search_path = ''
-as $$
+as $function$
   select *
   from private.create_platform_order(
     p_customer_id,
@@ -785,7 +785,7 @@ as $$
     p_items,
     p_operation_id
   );
-$$;
+$function$;
 
 create function public.transition_order_status(
   p_order_id uuid,
@@ -804,7 +804,7 @@ language sql
 volatile
 security invoker
 set search_path = ''
-as $$
+as $function$
   select *
   from private.transition_order_status(
     p_order_id,
@@ -812,7 +812,7 @@ as $$
     p_operation_id,
     p_reason
   );
-$$;
+$function$;
 
 revoke all privileges on function public.create_platform_order(uuid, timestamptz, jsonb, uuid)
   from public, anon, authenticated;
