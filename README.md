@@ -4,24 +4,17 @@ Plataforma para la gestión operativa de una MYPE de servicios.
 
 ## Estado
 
-Implementado:
+Completado:
 
 - autenticación y roles;
-- catálogo de servicios;
-- clientes;
-- creación y búsqueda de pedidos;
-- detalle e historial de pedidos;
-- transiciones de estados;
-- saldo pendiente calculado.
+- catálogo, clientes, pedidos y estados;
+- pagos y caja diaria compartida;
+- reportes y BI en `/admin/reportes`;
+- importaciones históricas CSV en `/admin/importaciones`;
+- PIN de seis dígitos para operadoras en `/admin/pin` y login.
 
-Pendiente:
-
-- pagos;
-- caja;
-- reportes;
-- business intelligence;
-- importaciones históricas;
-- acceso simplificado por PIN para operadoras.
+Fuera de alcance: máquinas, inventario, delivery, facturación electrónica,
+compras, gastos manuales y contabilidad tributaria.
 
 ## Desarrollo local
 
@@ -33,9 +26,7 @@ pnpm dev
 ## Verificación
 
 ```bash
-pnpm lint
-pnpm typecheck
 pnpm build
 ```
 
-Los requisitos, decisiones preliminares y plan de fases están en `docs/`.
+La documentación funcional y técnica está en `docs/`.

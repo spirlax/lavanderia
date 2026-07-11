@@ -477,6 +477,24 @@ export type Database = {
           },
         ];
       };
+      report_runs: {
+        Row: { id: string; requested_by: string; started_at: string; completed_at: string | null; duration_ms: number | null; date_from: string; date_to: string; status: string; result: Json; created_at: string };
+        Insert: { id?: string; requested_by: string; started_at?: string; completed_at?: string | null; duration_ms?: number | null; date_from: string; date_to: string; status?: string; result?: Json; created_at?: string };
+        Update: { id?: string; requested_by?: string; started_at?: string; completed_at?: string | null; duration_ms?: number | null; date_from?: string; date_to?: string; status?: string; result?: Json; created_at?: string };
+        Relationships: [];
+      };
+      import_batches: {
+        Row: { id: string; file_name: string; file_hash: string; imported_by: string; imported_at: string; row_count: number; status: string; error_count: number };
+        Insert: { id?: string; file_name: string; file_hash: string; imported_by: string; imported_at?: string; row_count: number; status?: string; error_count?: number };
+        Update: { id?: string; file_name?: string; file_hash?: string; imported_by?: string; imported_at?: string; row_count?: number; status?: string; error_count?: number };
+        Relationships: [];
+      };
+      historical_summaries: {
+        Row: { id: string; import_batch_id: string; business_date: string; orders_received: number; orders_delivered: number; orders_uncollected: number; revenue: number; report_time_minutes: number };
+        Insert: { id?: string; import_batch_id: string; business_date: string; orders_received: number; orders_delivered: number; orders_uncollected: number; revenue: number; report_time_minutes: number };
+        Update: { id?: string; import_batch_id?: string; business_date?: string; orders_received?: number; orders_delivered?: number; orders_uncollected?: number; revenue?: number; report_time_minutes?: number };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           can_manage_cash_session: boolean;
@@ -600,6 +618,14 @@ export type Database = {
       set_customer_active: {
         Args: { p_customer_id: string; p_is_active: boolean };
         Returns: Database["public"]["Tables"]["customers"]["Row"];
+      };
+      set_operator_pin: {
+        Args: { p_profile_id: string; p_pin: string };
+        Returns: boolean;
+      };
+      verify_operator_pin: {
+        Args: { p_pin: string };
+        Returns: boolean;
       };
       transition_order_status: {
         Args: {

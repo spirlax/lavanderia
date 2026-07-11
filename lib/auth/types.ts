@@ -32,6 +32,7 @@ export type LoginActionState = {
   fieldErrors?: {
     email?: string;
     password?: string;
+    pin?: string;
   };
 };
 

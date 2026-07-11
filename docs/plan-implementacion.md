@@ -2,6 +2,11 @@
 
 Cada fase requiere autorización explícita y cierre con `pnpm lint`, `pnpm typecheck` y `pnpm build`.
 
+## Cierre MVP de tesis
+
+Completadas las fases de pagos, caja, reportes, BI, importación histórica y PIN.
+Las entidades diferidas siguen fuera de alcance.
+
 ## Estado actual
 
 Implementado:

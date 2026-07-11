@@ -58,3 +58,8 @@ hora de finalización − hora de inicio
 La futura entidad `report_runs` debe incluir: `started_at`, `completed_at`, `duration_ms`, `report_type`, `filters`, `status` y `requested_by`.
 
 Pendiente metodológico: reporte o conjunto de reportes evaluados, volumen de datos y tratamiento de fallos/reintentos en la medición semanal.
+# Implementación MVP
+
+`/admin/reportes` conserva cada ejecución en `report_runs` y muestra cumplimiento,
+tasa de no recogidos, tiempo de generación, ingresos por método y pendientes.
+`/admin/importaciones` conserva lotes y resúmenes diarios sin crear pedidos ficticios.

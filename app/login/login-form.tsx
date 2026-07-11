@@ -37,6 +37,12 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
+        <label htmlFor="pin" className="block text-sm font-medium">PIN de operadora (6 dígitos)</label>
+        <input id="pin" name="pin" type="password" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" className="w-full rounded-md border border-zinc-300 px-3 py-2 outline-none focus:border-zinc-900" />
+        {state.fieldErrors?.pin ? <p className="text-sm text-red-700">{state.fieldErrors.pin}</p> : null}
+      </div>
+
+      <div className="space-y-2">
         <label htmlFor="password" className="block text-sm font-medium">
           Contraseña
         </label>

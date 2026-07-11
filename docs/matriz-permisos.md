@@ -1,5 +1,9 @@
 # Matriz de permisos
 
+El MVP final añade reportes, importaciones y PIN: son capacidades exclusivas de
+admin, con RLS y validación de servidor. Las operadoras solo validan su PIN al
+iniciar sesión y no pueden configurarlo.
+
 | Entidad | Acción | `admin` | `operator` | Condición |
 | --- | --- | --- | --- | --- |
 | `profiles` | administrar | Sí | No | Rol controlado por servidor. |

@@ -53,6 +53,18 @@ export default async function AdminPage() {
             Crear, editar, activar o desactivar el catálogo vigente.
           </p>
         </Link>
+        <Link href="/admin/reportes" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>Reportes y BI</h2>
+          <p className={styles.linkCardText}>Indicadores, ingresos y exportación CSV.</p>
+        </Link>
+        <Link href="/admin/importaciones" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>Importaciones históricas</h2>
+          <p className={styles.linkCardText}>Cargar resúmenes diarios sin inventar pedidos.</p>
+        </Link>
+        <Link href="/admin/pin" className={styles.linkCard}>
+          <h2 className={styles.linkCardTitle}>PIN de operadoras</h2>
+          <p className={styles.linkCardText}>Configurar acceso operativo.</p>
+        </Link>
       </div>
     </div>
   );

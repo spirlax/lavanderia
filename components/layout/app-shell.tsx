@@ -158,6 +158,9 @@ function AdminShell({
         active={pathname.startsWith("/admin/caja")}
         onNavigate={close}
       />
+      <NavItem href="/admin/reportes" label="Reportes" active={pathname.startsWith("/admin/reportes")} onNavigate={close} />
+      <NavItem href="/admin/importaciones" label="Importaciones" active={pathname.startsWith("/admin/importaciones")} onNavigate={close} />
+      <NavItem href="/admin/pin" label="PIN" active={pathname.startsWith("/admin/pin")} onNavigate={close} />
     </>
   );
 
