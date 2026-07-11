@@ -77,8 +77,8 @@ export default async function CustomerDetailPage({
         </>
       ) : (
         <Alert tone="info">
-          Puedes consultar este cliente. La edición y la desactivación están
-          disponibles solo para administración.
+          Puedes consultar este cliente. La edición, activación y desactivación
+          están disponibles solo para el Administrador.
         </Alert>
       )}
     </div>

@@ -1,4 +1,5 @@
 .shell {
+  --touch-min: 48px;
   min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
@@ -67,6 +68,17 @@
   background: var(--surface);
   color: var(--foreground);
   cursor: pointer;
+}
+
+.mobileAdminLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
 }
 
 .backdrop {
@@ -181,7 +193,7 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-1);
   padding: var(--space-2) var(--space-3) calc(var(--space-2) + var(--safe-bottom));
   background: var(--surface);
@@ -229,6 +241,13 @@
 
 .secondaryMenu {
   position: relative;
+  min-width: 0;
+}
+
+.secondaryMenu > .bottomNavLink {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
 }
 
 .secondaryPanel {
@@ -263,6 +282,12 @@
   color: var(--foreground);
   text-align: left;
   cursor: pointer;
+}
+
+.secondaryLogout {
+  width: 100%;
+  justify-content: flex-start;
+  border-color: transparent;
 }
 
 @media (min-width: 768px) {

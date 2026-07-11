@@ -51,6 +51,18 @@
   gap: var(--space-3);
 }
 
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.adminGrid,
+.orderGrid {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .card {
   display: flex;
   flex-direction: column;
@@ -211,6 +223,12 @@
   min-height: var(--touch-action);
 }
 
+.primaryCta {
+  width: 100%;
+  min-height: 4rem;
+  font-size: 1.05rem;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -286,6 +304,20 @@
   font-size: 0.925rem;
 }
 
+.orderReadyCard {
+  border-color: var(--success);
+  background: var(--success-soft);
+  box-shadow: inset 4px 0 0 var(--success);
+}
+
+.balanceDue {
+  margin: var(--space-1) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  color: var(--foreground);
+  font-weight: 700;
+}
+
 .dialogBackdrop {
   position: fixed;
   inset: 0;
@@ -323,6 +355,17 @@
 }
 
 @media (min-width: 768px) {
+  .adminGrid,
+  .orderGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primaryCta {
+    width: auto;
+    align-self: flex-start;
+    min-width: 14rem;
+  }
+
   .formGridTwo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -337,5 +380,12 @@
 
   .desktopOnly {
     display: block;
+  }
+}
+
+@media (min-width: 1200px) {
+  .adminGrid,
+  .orderGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
