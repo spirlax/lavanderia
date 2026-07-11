@@ -36,13 +36,13 @@ returns text
 language plpgsql
 security definer
 set search_path = ''
-as $function$
+as '
 declare
   v_year integer;
   v_next integer;
 begin
   v_year := pg_catalog.extract(
-    year from (pg_catalog.statement_timestamp() at time zone 'America/Lima')
+    year from (pg_catalog.statement_timestamp() at time zone ''America/Lima'')
   )::integer;
 
   insert into private.order_number_counters as counters (year, last_value)
@@ -52,17 +52,17 @@ begin
   returning counters.last_value into v_next;
 
   if v_next > 999999 then
-    raise exception 'order number sequence exhausted for year %', v_year
-      using errcode = 'P0001';
+    raise exception ''order number sequence exhausted for year %'', v_year
+      using errcode = ''P0001'';
   end if;
 
   return pg_catalog.format(
-    'LAV-%s-%s',
+    ''LAV-%s-%s'',
     v_year,
-    pg_catalog.lpad(v_next::text, 6, '0')
+    pg_catalog.lpad(v_next::text, 6, ''0'')
   );
 end;
-$function$;
+';
 
 revoke all privileges on function private.next_platform_order_number()
   from public, anon, authenticated;
@@ -93,7 +93,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = ''
-as $function$
+as '
 declare
   v_actor_id uuid := (select auth.uid());
   v_actor_role public.user_role;
@@ -113,29 +113,29 @@ declare
   v_quantity numeric(12,3);
   v_line_total numeric(12,2);
   v_service_id uuid;
-  v_resolved_items jsonb := '[]'::jsonb;
-  v_seen_service_ids uuid[] := '{}'::uuid[];
+  v_resolved_items jsonb := ''[]''::jsonb;
+  v_seen_service_ids uuid[] := ''{}''::uuid[];
   v_extra_key_count integer;
   v_key_count integer;
   v_quantity_text text;
   v_customer_id uuid;
 begin
   if v_actor_id is null then
-    raise exception 'authentication required'
-      using errcode = '42501';
+    raise exception ''authentication required''
+      using errcode = ''42501'';
   end if;
 
   if p_customer_id is null
      or p_scheduled_for is null
      or p_items is null
      or p_operation_id is null then
-    raise exception 'customer_id, scheduled_for, items, and operation_id are required'
-      using errcode = '22023';
+    raise exception ''customer_id, scheduled_for, items, and operation_id are required''
+      using errcode = ''22023'';
   end if;
 
-  if pg_catalog.jsonb_typeof(p_items) <> 'array' then
-    raise exception 'items must be a JSON array'
-      using errcode = '22023';
+  if pg_catalog.jsonb_typeof(p_items) <> ''array'' then
+    raise exception ''items must be a JSON array''
+      using errcode = ''22023'';
   end if;
 
   select profile.role
@@ -143,12 +143,12 @@ begin
   from public.profiles as profile
   where profile.id = v_actor_id
     and profile.is_active
-    and profile.role in ('admin', 'operator')
+    and profile.role in (''admin'', ''operator'')
   for share;
 
   if v_actor_role is null then
-    raise exception 'active staff profile required'
-      using errcode = '42501';
+    raise exception ''active staff profile required''
+      using errcode = ''42501'';
   end if;
 
   -- Idempotency: same operation_id is reusable only by the same actor.
@@ -164,7 +164,7 @@ begin
          from public.order_status_history as history
          where history.operation_id = p_operation_id
            and history.from_status is null
-           and history.to_status = 'received'
+           and history.to_status = ''received''
            and history.changed_by = v_actor_id
        ) then
       return query
@@ -184,8 +184,8 @@ begin
       return;
     end if;
 
-    raise exception 'operation_id % already used by a different operation or actor', p_operation_id
-      using errcode = '23505';
+    raise exception ''operation_id % already used by a different operation or actor'', p_operation_id
+      using errcode = ''23505'';
   end if;
 
   select customer.id
@@ -196,20 +196,20 @@ begin
   for share;
 
   if v_customer_id is null then
-    raise exception 'active customer required'
-      using errcode = '23514';
+    raise exception ''active customer required''
+      using errcode = ''23514'';
   end if;
 
   v_item_count := pg_catalog.jsonb_array_length(p_items);
 
   if v_item_count < 1 then
-    raise exception 'at least one order item is required'
-      using errcode = '23514';
+    raise exception ''at least one order item is required''
+      using errcode = ''23514'';
   end if;
 
   if v_item_count > 100 then
-    raise exception 'orders may contain at most 100 line items'
-      using errcode = '22023';
+    raise exception ''orders may contain at most 100 line items''
+      using errcode = ''22023'';
   end if;
 
   for v_item in
@@ -218,15 +218,15 @@ begin
       value as item_value
     from pg_catalog.jsonb_array_elements(p_items) with ordinality
   loop
-    if pg_catalog.jsonb_typeof(v_item.item_value) <> 'object' then
-      raise exception 'items[%] must be an object', v_item.item_index
-        using errcode = '22023';
+    if pg_catalog.jsonb_typeof(v_item.item_value) <> ''object'' then
+      raise exception ''items[%] must be an object'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     select
       count(*)::integer,
       count(*) filter (
-        where key_name not in ('service_id', 'quantity')
+        where key_name not in (''service_id'', ''quantity'')
       )::integer
     into v_key_count, v_extra_key_count
     from pg_catalog.jsonb_object_keys(v_item.item_value) as key_name;
@@ -234,59 +234,59 @@ begin
     if v_key_count <> 2
        or v_extra_key_count > 0
        or not (
-         (v_item.item_value ? 'service_id')
-         and (v_item.item_value ? 'quantity')
+         (v_item.item_value ? ''service_id'')
+         and (v_item.item_value ? ''quantity'')
        ) then
-      raise exception 'items[%] may contain only service_id and quantity', v_item.item_index
-        using errcode = '22023';
+      raise exception ''items[%] may contain only service_id and quantity'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     begin
-      v_service_id := (v_item.item_value ->> 'service_id')::uuid;
+      v_service_id := (v_item.item_value ->> ''service_id'')::uuid;
     exception
       when others then
-        raise exception 'items[%].service_id is invalid', v_item.item_index
-          using errcode = '22023';
+        raise exception ''items[%].service_id is invalid'', v_item.item_index
+          using errcode = ''22023'';
     end;
 
     if v_service_id is null then
-      raise exception 'items[%].service_id is required', v_item.item_index
-        using errcode = '22023';
+      raise exception ''items[%].service_id is required'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     if v_service_id = any (v_seen_service_ids) then
-      raise exception 'items[%] duplicates service_id %', v_item.item_index, v_service_id
-        using errcode = '23505';
+      raise exception ''items[%] duplicates service_id %'', v_item.item_index, v_service_id
+        using errcode = ''23505'';
     end if;
 
-    v_quantity_text := pg_catalog.btrim(v_item.item_value ->> 'quantity');
+    v_quantity_text := pg_catalog.btrim(v_item.item_value ->> ''quantity'');
 
-    if v_quantity_text is null or v_quantity_text = '' then
-      raise exception 'items[%].quantity is required', v_item.item_index
-        using errcode = '22023';
+    if v_quantity_text is null or v_quantity_text = '''' then
+      raise exception ''items[%].quantity is required'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
-    if v_quantity_text !~ '^[0-9]+(\.[0-9]{1,3})?$' then
-      raise exception 'items[%].quantity must be a positive numeric(12,3) value', v_item.item_index
-        using errcode = '22023';
+    if v_quantity_text !~ ''^[0-9]+(\.[0-9]{1,3})?$'' then
+      raise exception ''items[%].quantity must be a positive numeric(12,3) value'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     begin
       v_quantity := v_quantity_text::numeric(12,3);
     exception
       when others then
-        raise exception 'items[%].quantity exceeds numeric(12,3) capacity', v_item.item_index
-          using errcode = '22023';
+        raise exception ''items[%].quantity exceeds numeric(12,3) capacity'', v_item.item_index
+          using errcode = ''22023'';
     end;
 
     if v_quantity is null or v_quantity <= 0 then
-      raise exception 'items[%].quantity must be greater than zero', v_item.item_index
-        using errcode = '22023';
+      raise exception ''items[%].quantity must be greater than zero'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     if v_quantity > 999999999.999 then
-      raise exception 'items[%].quantity exceeds numeric(12,3) capacity', v_item.item_index
-        using errcode = '22023';
+      raise exception ''items[%].quantity exceeds numeric(12,3) capacity'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     select *
@@ -297,20 +297,20 @@ begin
     for share;
 
     if not found then
-      raise exception 'items[%] references an inactive or missing service', v_item.item_index
-        using errcode = '23514';
+      raise exception ''items[%] references an inactive or missing service'', v_item.item_index
+        using errcode = ''23514'';
     end if;
 
     if v_quantity * v_service.current_price > 9999999999.99 then
-      raise exception 'items[%] line total exceeds numeric(12,2) capacity', v_item.item_index
-        using errcode = '22023';
+      raise exception ''items[%] line total exceeds numeric(12,2) capacity'', v_item.item_index
+        using errcode = ''22023'';
     end if;
 
     v_line_total := pg_catalog.round(v_quantity * v_service.current_price, 2);
 
     if v_subtotal + v_line_total > 9999999999.99 then
-      raise exception 'order subtotal exceeds numeric(12,2) capacity'
-        using errcode = '22023';
+      raise exception ''order subtotal exceeds numeric(12,2) capacity''
+        using errcode = ''22023'';
     end if;
 
     v_subtotal := v_subtotal + v_line_total;
@@ -318,12 +318,12 @@ begin
 
     v_resolved_items := v_resolved_items || pg_catalog.jsonb_build_array(
       pg_catalog.jsonb_build_object(
-        'service_id', v_service.id,
-        'service_name_snapshot', v_service.name,
-        'unit_snapshot', v_service.unit,
-        'quantity', v_quantity,
-        'unit_price', v_service.current_price,
-        'line_total', v_line_total
+        ''service_id'', v_service.id,
+        ''service_name_snapshot'', v_service.name,
+        ''unit_snapshot'', v_service.unit,
+        ''quantity'', v_quantity,
+        ''unit_price'', v_service.current_price,
+        ''line_total'', v_line_total
       )
     );
   end loop;
@@ -361,8 +361,8 @@ begin
       v_order_id,
       p_customer_id,
       v_order_number,
-      'received',
-      'platform',
+      ''received'',
+      ''platform'',
       p_scheduled_for,
       v_received_at,
       null,
@@ -417,7 +417,7 @@ begin
     ) values (
       v_order_id,
       null,
-      'received',
+      ''received'',
       v_actor_id,
       v_actor_role,
       v_received_at,
@@ -431,7 +431,7 @@ begin
         from public.order_status_history as history
         where history.operation_id = p_operation_id
           and history.from_status is null
-          and history.to_status = 'received'
+          and history.to_status = ''received''
           and history.changed_by = v_actor_id
       ) then
         return query
@@ -454,15 +454,15 @@ begin
         return;
       end if;
 
-      raise exception 'operation_id % already used by a different operation or actor', p_operation_id
-        using errcode = '23505';
+      raise exception ''operation_id % already used by a different operation or actor'', p_operation_id
+        using errcode = ''23505'';
   end;
 
   return query
   select
     v_order_id,
     v_order_number,
-    'received'::public.order_status,
+    ''received''::public.order_status,
     v_subtotal,
     v_discount,
     v_total,
@@ -472,7 +472,7 @@ begin
 
   return;
 end;
-$function$;
+';
 
 revoke all privileges on function private.create_platform_order(uuid, timestamptz, jsonb, uuid)
   from public, anon, authenticated;
@@ -498,24 +498,24 @@ returns table (
 language plpgsql
 security definer
 set search_path = ''
-as $function$
+as '
 declare
   v_actor_id uuid := (select auth.uid());
   v_actor_role public.user_role;
   v_order public.orders%rowtype;
-  v_reason text := nullif(pg_catalog.btrim(coalesce(p_reason, '')), '');
+  v_reason text := nullif(pg_catalog.btrim(coalesce(p_reason, '''')), '''');
   v_now timestamptz := pg_catalog.statement_timestamp();
   v_from_status public.order_status;
   v_existing_history public.order_status_history%rowtype;
 begin
   if v_actor_id is null then
-    raise exception 'authentication required'
-      using errcode = '42501';
+    raise exception ''authentication required''
+      using errcode = ''42501'';
   end if;
 
   if p_order_id is null or p_to_status is null or p_operation_id is null then
-    raise exception 'order_id, to_status, and operation_id are required'
-      using errcode = '22023';
+    raise exception ''order_id, to_status, and operation_id are required''
+      using errcode = ''22023'';
   end if;
 
   select profile.role
@@ -523,12 +523,12 @@ begin
   from public.profiles as profile
   where profile.id = v_actor_id
     and profile.is_active
-    and profile.role in ('admin', 'operator')
+    and profile.role in (''admin'', ''operator'')
   for share;
 
   if v_actor_role is null then
-    raise exception 'active staff profile required'
-      using errcode = '42501';
+    raise exception ''active staff profile required''
+      using errcode = ''42501'';
   end if;
 
   select orders.*
@@ -538,13 +538,13 @@ begin
   for update of orders;
 
   if not found then
-    raise exception 'order not found'
-      using errcode = 'P0002';
+    raise exception ''order not found''
+      using errcode = ''P0002'';
   end if;
 
-  if v_order.source <> 'platform' then
-    raise exception 'only platform orders can be transitioned by this function'
-      using errcode = '23514';
+  if v_order.source <> ''platform'' then
+    raise exception ''only platform orders can be transitioned by this function''
+      using errcode = ''23514'';
   end if;
 
   -- Idempotency after the order row lock so concurrent callers serialize here.
@@ -571,69 +571,69 @@ begin
       return;
     end if;
 
-    raise exception 'operation_id % already used by a different operation or actor', p_operation_id
-      using errcode = '23505';
+    raise exception ''operation_id % already used by a different operation or actor'', p_operation_id
+      using errcode = ''23505'';
   end if;
 
-  if v_order.status in ('delivered', 'cancelled') then
-    raise exception 'terminal order status % cannot be changed', v_order.status
-      using errcode = '23514';
+  if v_order.status in (''delivered'', ''cancelled'') then
+    raise exception ''terminal order status % cannot be changed'', v_order.status
+      using errcode = ''23514'';
   end if;
 
   v_from_status := v_order.status;
 
   if v_from_status = p_to_status then
-    raise exception 'transition to the same status is not allowed'
-      using errcode = '23514';
+    raise exception ''transition to the same status is not allowed''
+      using errcode = ''23514'';
   end if;
 
-  if v_from_status = 'received' and p_to_status = 'in_process' then
+  if v_from_status = ''received'' and p_to_status = ''in_process'' then
     null;
-  elsif v_from_status = 'in_process' and p_to_status = 'ready' then
+  elsif v_from_status = ''in_process'' and p_to_status = ''ready'' then
     null;
-  elsif v_from_status = 'ready' and p_to_status = 'delivered' then
+  elsif v_from_status = ''ready'' and p_to_status = ''delivered'' then
     if v_order.balance_due > 0 then
-      if v_actor_role <> 'admin' then
-        raise exception 'operator cannot deliver an order with outstanding balance'
-          using errcode = '42501';
+      if v_actor_role <> ''admin'' then
+        raise exception ''operator cannot deliver an order with outstanding balance''
+          using errcode = ''42501'';
       end if;
 
       if v_reason is null then
-        raise exception 'delivery with outstanding balance requires a reason'
-          using errcode = '23514';
+        raise exception ''delivery with outstanding balance requires a reason''
+          using errcode = ''23514'';
       end if;
     end if;
-  elsif v_from_status = 'ready' and p_to_status = 'in_process' then
-    if v_actor_role <> 'admin' then
-      raise exception 'only admin can return a ready order to in_process'
-        using errcode = '42501';
+  elsif v_from_status = ''ready'' and p_to_status = ''in_process'' then
+    if v_actor_role <> ''admin'' then
+      raise exception ''only admin can return a ready order to in_process''
+        using errcode = ''42501'';
     end if;
 
     if v_reason is null then
-      raise exception 'reprocess requires a reason'
-        using errcode = '23514';
+      raise exception ''reprocess requires a reason''
+        using errcode = ''23514'';
     end if;
-  elsif p_to_status = 'cancelled'
-        and v_from_status in ('received', 'in_process', 'ready') then
-    if v_actor_role <> 'admin' then
-      raise exception 'only admin can cancel an order'
-        using errcode = '42501';
+  elsif p_to_status = ''cancelled''
+        and v_from_status in (''received'', ''in_process'', ''ready'') then
+    if v_actor_role <> ''admin'' then
+      raise exception ''only admin can cancel an order''
+        using errcode = ''42501'';
     end if;
 
     if v_reason is null then
-      raise exception 'cancellation requires a reason'
-        using errcode = '23514';
+      raise exception ''cancellation requires a reason''
+        using errcode = ''23514'';
     end if;
   else
-    raise exception 'transition from % to % is not allowed', v_from_status, p_to_status
-      using errcode = '23514';
+    raise exception ''transition from % to % is not allowed'', v_from_status, p_to_status
+      using errcode = ''23514'';
   end if;
 
   begin
-    if p_to_status = 'in_process' then
+    if p_to_status = ''in_process'' then
       update public.orders as orders
       set
-        status = 'in_process',
+        status = ''in_process'',
         ready_at = null,
         delivered_at = null,
         cancelled_at = null,
@@ -642,10 +642,10 @@ begin
         delivery_with_balance_reason = null
       where orders.id = p_order_id;
 
-    elsif p_to_status = 'ready' then
+    elsif p_to_status = ''ready'' then
       update public.orders as orders
       set
-        status = 'ready',
+        status = ''ready'',
         ready_at = v_now,
         delivered_at = null,
         cancelled_at = null,
@@ -654,10 +654,10 @@ begin
         delivery_with_balance_reason = null
       where orders.id = p_order_id;
 
-    elsif p_to_status = 'delivered' then
+    elsif p_to_status = ''delivered'' then
       update public.orders as orders
       set
-        status = 'delivered',
+        status = ''delivered'',
         delivered_at = v_now,
         cancelled_at = null,
         cancel_reason = null,
@@ -671,10 +671,10 @@ begin
         end
       where orders.id = p_order_id;
 
-    elsif p_to_status = 'cancelled' then
+    elsif p_to_status = ''cancelled'' then
       update public.orders as orders
       set
-        status = 'cancelled',
+        status = ''cancelled'',
         cancelled_at = v_now,
         cancel_reason = v_reason,
         delivered_at = null,
@@ -700,9 +700,9 @@ begin
       v_actor_role,
       v_now,
       case
-        when p_to_status = 'cancelled' then v_reason
-        when v_from_status = 'ready' and p_to_status = 'in_process' then v_reason
-        when p_to_status = 'delivered' and v_order.balance_due > 0 then v_reason
+        when p_to_status = ''cancelled'' then v_reason
+        when v_from_status = ''ready'' and p_to_status = ''in_process'' then v_reason
+        when p_to_status = ''delivered'' and v_order.balance_due > 0 then v_reason
         else null
       end,
       p_operation_id
@@ -731,8 +731,8 @@ begin
         return;
       end if;
 
-      raise exception 'operation_id % already used by a different operation or actor', p_operation_id
-        using errcode = '23505';
+      raise exception ''operation_id % already used by a different operation or actor'', p_operation_id
+        using errcode = ''23505'';
   end;
 
   return query
@@ -747,7 +747,7 @@ begin
 
   return;
 end;
-$function$;
+';
 
 revoke all privileges on function private.transition_order_status(uuid, public.order_status, uuid, text)
   from public, anon, authenticated;
@@ -777,7 +777,7 @@ language sql
 volatile
 security invoker
 set search_path = ''
-as $function$
+as '
   select *
   from private.create_platform_order(
     p_customer_id,
@@ -785,7 +785,7 @@ as $function$
     p_items,
     p_operation_id
   );
-$function$;
+';
 
 create function public.transition_order_status(
   p_order_id uuid,
@@ -804,7 +804,7 @@ language sql
 volatile
 security invoker
 set search_path = ''
-as $function$
+as '
   select *
   from private.transition_order_status(
     p_order_id,
@@ -812,7 +812,7 @@ as $function$
     p_operation_id,
     p_reason
   );
-$function$;
+';
 
 revoke all privileges on function public.create_platform_order(uuid, timestamptz, jsonb, uuid)
   from public, anon, authenticated;
