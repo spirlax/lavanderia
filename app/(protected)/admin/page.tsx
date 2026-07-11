@@ -2,70 +2,115 @@ import Link from "next/link";
 
 import styles from "@/components/ui/ui.module.css";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
+import {
+  getCashSessionSummary,
+  getOpenCashSession,
+} from "@/lib/cash/queries";
+import { formatCurrency } from "@/lib/format/money";
+import { listActiveOrders } from "@/lib/orders/queries";
 
 export default async function AdminPage() {
   const profile = await requireCurrentProfile();
+
+  const [openSession, activeOrders] = await Promise.all([
+    getOpenCashSession(),
+    listActiveOrders(),
+  ]);
+
+  const cashSummary = openSession
+    ? await getCashSessionSummary(openSession)
+    : null;
+  const readyCount = activeOrders.filter(
+    (order) => order.status === "ready",
+  ).length;
+  const balancePending = activeOrders.filter(
+    (order) => Number(order.balance_due) > 0,
+  ).length;
+  const collected = cashSummary
+    ? Number(cashSummary.totals.cash) +
+      Number(cashSummary.totals.yape) +
+      Number(cashSummary.totals.plin)
+    : 0;
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Panel administrativo</h1>
         <p className={styles.subtitle}>
-          Hola, {profile.full_name}. Supervisa la operación y administra los
-          servicios y precios desde las funciones disponibles.
+          Hola, {profile.full_name}. Resumen operativo y accesos principales.
         </p>
       </header>
 
-      <div className={styles.adminGrid}>
-        <Link href="/" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Operación</h2>
-          <p className={styles.linkCardText}>
-            Revisar pedidos activos, estados y saldos pendientes.
+      <section className={styles.metricGrid} aria-label="Resumen operativo">
+        <div className={`${styles.metric} ${styles.metricPrimary}`}>
+          <p className={styles.metricLabel}>Caja</p>
+          <p className={styles.metricValue}>
+            {openSession ? "Abierta" : "Cerrada"}
           </p>
-        </Link>
-        <Link href="/nuevo" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Nuevo pedido</h2>
-          <p className={styles.linkCardText}>
-            Registrar un pedido con los servicios y precios del catálogo.
+          <p className={styles.help}>
+            {cashSummary
+              ? `Esperado ${formatCurrency(Number(cashSummary.session.expected_cash))}`
+              : "Sin jornada abierta"}
           </p>
-        </Link>
-        <Link href="/buscar" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Buscar pedidos</h2>
-          <p className={styles.linkCardText}>
-            Consultar pedidos por número, cliente, teléfono, estado o fecha.
+        </div>
+        <div className={styles.metric}>
+          <p className={styles.metricLabel}>Cobrado en jornada</p>
+          <p className={styles.metricValue}>
+            {openSession ? formatCurrency(collected) : "—"}
           </p>
-        </Link>
-        <Link href="/clientes" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Clientes</h2>
-          <p className={styles.linkCardText}>
-            Consultar, crear, editar, activar y desactivar clientes.
+          <p className={styles.help}>
+            {openSession
+              ? "Pagos de la caja abierta"
+              : "Abre caja para ver totales"}
           </p>
-        </Link>
-        <Link href="/admin/caja" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Caja compartida</h2>
-          <p className={styles.linkCardText}>
-            Supervisar apertura, pagos, cierres, diferencias y responsables.
+        </div>
+        <div className={styles.metric}>
+          <p className={styles.metricLabel}>Pedidos activos</p>
+          <p className={styles.metricValue}>{activeOrders.length}</p>
+          <p className={styles.help}>
+            {readyCount === 1
+              ? "1 listo para entregar"
+              : `${readyCount} listos para entregar`}
           </p>
-        </Link>
-        <Link href="/admin/servicios" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Servicios y precios</h2>
-          <p className={styles.linkCardText}>
-            Crear, editar, activar o desactivar el catálogo vigente.
-          </p>
-        </Link>
-        <Link href="/admin/reportes" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Reportes y BI</h2>
-          <p className={styles.linkCardText}>Indicadores, ingresos y exportación CSV.</p>
-        </Link>
-        <Link href="/admin/importaciones" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>Importaciones históricas</h2>
-          <p className={styles.linkCardText}>Cargar resúmenes diarios sin inventar pedidos.</p>
-        </Link>
-        <Link href="/admin/pin" className={styles.linkCard}>
-          <h2 className={styles.linkCardTitle}>PIN de operadoras</h2>
-          <p className={styles.linkCardText}>Configurar acceso operativo.</p>
-        </Link>
-      </div>
+        </div>
+        <div className={styles.metric}>
+          <p className={styles.metricLabel}>Con saldo</p>
+          <p className={styles.metricValue}>{balancePending}</p>
+          <p className={styles.help}>Activos con saldo pendiente</p>
+        </div>
+      </section>
+
+      <section className={styles.panelStack}>
+        <h2 className={styles.sectionTitle}>Accesos rápidos</h2>
+        <div className={styles.shortcutGrid}>
+          <Link href="/" className={styles.linkCard}>
+            <h3 className={styles.linkCardTitle}>Operación</h3>
+            <p className={styles.linkCardText}>Cola activa y entregas.</p>
+          </Link>
+          <Link href="/admin/caja" className={styles.linkCard}>
+            <h3 className={styles.linkCardTitle}>Caja</h3>
+            <p className={styles.linkCardText}>
+              Apertura, cierre y responsables.
+            </p>
+          </Link>
+          <Link href="/admin/reportes" className={styles.linkCard}>
+            <h3 className={styles.linkCardTitle}>Reportes</h3>
+            <p className={styles.linkCardText}>Indicadores y exportación.</p>
+          </Link>
+          <Link href="/admin/servicios" className={styles.linkCard}>
+            <h3 className={styles.linkCardTitle}>Servicios</h3>
+            <p className={styles.linkCardText}>Catálogo y precios.</p>
+          </Link>
+          <Link href="/admin/importaciones" className={styles.linkCard}>
+            <h3 className={styles.linkCardTitle}>Importaciones</h3>
+            <p className={styles.linkCardText}>Históricos diarios.</p>
+          </Link>
+          <Link href="/admin/pin" className={styles.linkCard}>
+            <h3 className={styles.linkCardTitle}>PIN</h3>
+            <p className={styles.linkCardText}>Acceso de operadoras.</p>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

@@ -17,6 +17,8 @@
 .shellAdminMain {
   min-width: 0;
   padding: var(--space-4);
+  padding-left: calc(var(--space-4) + var(--safe-left));
+  padding-right: calc(var(--space-4) + var(--safe-right));
   padding-bottom: calc(var(--space-8) + var(--safe-bottom));
 }
 
@@ -33,6 +35,8 @@
   max-width: var(--content-max);
   margin: 0 auto;
   padding: var(--space-4);
+  padding-left: calc(var(--space-4) + var(--safe-left));
+  padding-right: calc(var(--space-4) + var(--safe-right));
   padding-bottom: calc(5.5rem + var(--safe-bottom));
 }
 
@@ -45,7 +49,9 @@
   justify-content: space-between;
   gap: var(--space-3);
   min-height: var(--touch-min);
-  padding: calc(var(--space-3) + var(--safe-top)) var(--space-4) var(--space-3);
+  padding: calc(var(--space-3) + var(--safe-top))
+    calc(var(--space-4) + var(--safe-right)) var(--space-3)
+    calc(var(--space-4) + var(--safe-left));
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -54,6 +60,47 @@
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.headerCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.headerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cashChip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.5rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cashChipOpen {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.cashChipClosed {
+  background: var(--warning-soft);
+  color: var(--warning);
 }
 
 .iconButton {
@@ -117,7 +164,7 @@
 .drawerNav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .drawerFooter {
@@ -144,8 +191,26 @@
 .sidebarNav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-4);
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.navGroupTitle {
+  margin: 0 0 var(--space-1);
+  padding: 0 var(--space-3);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .userBlock {
@@ -166,11 +231,18 @@
 .navLink {
   display: flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: var(--touch-min);
   padding: 0 var(--space-3);
   border-radius: var(--radius-sm);
   color: var(--foreground);
   font-weight: 500;
+}
+
+.navIcon {
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .navLinkActive {
@@ -186,6 +258,10 @@
   font-weight: 600;
 }
 
+.navLinkPrimary .navIcon {
+  color: var(--primary-contrast);
+}
+
 .bottomNav {
   position: fixed;
   left: 0;
@@ -193,9 +269,10 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-3) calc(var(--space-2) + var(--safe-bottom));
+  padding: var(--space-2) calc(var(--space-2) + var(--safe-right))
+    calc(var(--space-2) + var(--safe-bottom)) calc(var(--space-2) + var(--safe-left));
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
@@ -208,9 +285,14 @@
   gap: 0.15rem;
   min-height: var(--touch-action);
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--muted);
+}
+
+.bottomNavIcon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .bottomNavLinkActive {
@@ -273,6 +355,7 @@
 .secondaryItem {
   display: flex;
   align-items: center;
+  gap: var(--space-2);
   width: 100%;
   min-height: var(--touch-min);
   padding: 0 var(--space-3);

@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { Alert } from "@/components/ui/alert";
+import { PaymentMethodSegmented } from "@/components/payments/payment-method-segmented";
 import orderStyles from "@/components/orders/orders.module.css";
 import styles from "@/components/ui/ui.module.css";
 import type { ActionResult, PaymentMethod } from "@/lib/auth/types";
@@ -41,24 +42,15 @@ export function PayBalanceForm({
       <input type="hidden" name="order_id" value={orderId} />
       <input type="hidden" name="operation_id" value={operationId} />
       <input type="hidden" name="payment_method" value={method} />
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="balance-payment-method">
-          Método
-        </label>
-        <select
-          id="balance-payment-method"
-          className={styles.select}
-          value={method}
-          onChange={(event) => {
-            setMethod(event.target.value as PaymentMethod);
-            setCashReceived("");
-          }}
-        >
-          <option value="cash">Efectivo</option>
-          <option value="yape">Yape</option>
-          <option value="plin">Plin</option>
-        </select>
-      </div>
+      <PaymentMethodSegmented
+        id="balance-payment-method"
+        label="Método"
+        value={method}
+        onChange={(next) => {
+          setMethod(next);
+          setCashReceived("");
+        }}
+      />
       {method === "cash" ? (
         <>
           <div className={styles.field}>

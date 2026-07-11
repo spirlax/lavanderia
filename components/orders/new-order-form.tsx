@@ -1,14 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useActionState,
-  useId,
-  useMemo,
-  useState,
-} from "react";
+import { useActionState, useId, useMemo, useState } from "react";
 
 import { Alert } from "@/components/ui/alert";
+import { PaymentMethodSegmented } from "@/components/payments/payment-method-segmented";
 import orderStyles from "@/components/orders/orders.module.css";
 import styles from "@/components/ui/ui.module.css";
 import type {
@@ -23,6 +19,7 @@ import {
   createOrderAction,
   type CreateOrderActionResult,
 } from "@/lib/orders/actions";
+import { getPaymentMethodLabel } from "@/lib/payments/labels";
 import { getServiceUnitLabel } from "@/lib/services/labels";
 
 type CustomerOption = {
@@ -149,21 +146,39 @@ export function NewOrderForm({
       .slice(0, 20);
   }, [customers, customerQuery]);
 
+  const selectedCustomer = useMemo(
+    () => customers.find((customer) => customer.id === selectedCustomerId),
+    [customers, selectedCustomerId],
+  );
+
   const selectedServiceIds = useMemo(
     () => new Set(lines.map((line) => line.service_id).filter(Boolean)),
     [lines],
   );
 
-  const estimatedSubtotal = useMemo(() => {
-    return lines.reduce((sum, line) => {
-      const service = services.find((item) => item.id === line.service_id);
-      const quantity = Number(line.quantity);
-      if (!service || !Number.isFinite(quantity) || quantity <= 0) {
-        return sum;
-      }
-      return sum + service.current_price * quantity;
-    }, 0);
+  const summaryLines = useMemo(() => {
+    return lines
+      .map((line) => {
+        const service = services.find((item) => item.id === line.service_id);
+        const quantity = Number(line.quantity);
+        if (!service || !Number.isFinite(quantity) || quantity <= 0) {
+          return null;
+        }
+        return {
+          key: line.key,
+          name: service.name,
+          quantity,
+          unit: getServiceUnitLabel(service.unit),
+          amount: service.current_price * quantity,
+        };
+      })
+      .filter((line): line is NonNullable<typeof line> => line !== null);
   }, [lines, services]);
+
+  const estimatedSubtotal = useMemo(
+    () => summaryLines.reduce((sum, line) => sum + line.amount, 0),
+    [summaryLines],
+  );
 
   const estimatedChange = Math.max(
     0,
@@ -209,14 +224,39 @@ export function NewOrderForm({
     );
   }
 
+  const canSubmit =
+    Boolean(selectedCustomerId) &&
+    summaryLines.length > 0 &&
+    !(paymentMethod === "cash" && !cashReceived);
+
   return (
     <div className={orderStyles.layout}>
       <div className={orderStyles.formWithSummary}>
-        <div className={styles.panelStack}>
+        <div className={orderStyles.formColumn}>
           <section className={`${styles.panel} ${styles.panelStack}`}>
-            <h2 className={styles.cardTitle}>Cliente</h2>
+            <h2 className={`${styles.sectionTitle} ${orderStyles.stepTitle}`}>
+              <span className={orderStyles.stepIndex} aria-hidden="true">
+                1
+              </span>
+              Cliente
+            </h2>
+
+            {selectedCustomer ? (
+              <div className={orderStyles.selectedCustomer}>
+                <p className={orderStyles.selectedCustomerName}>
+                  {selectedCustomer.name}
+                </p>
+                <p className={orderStyles.selectedCustomerMeta}>
+                  {selectedCustomer.phone ?? "Sin teléfono"}
+                </p>
+              </div>
+            ) : null}
+
             <div className={styles.field}>
-              <label className={styles.label} htmlFor={`${formId}-customer-search`}>
+              <label
+                className={styles.label}
+                htmlFor={`${formId}-customer-search`}
+              >
                 Buscar por nombre o teléfono
               </label>
               <input
@@ -331,13 +371,20 @@ export function NewOrderForm({
             ) : null}
 
             {!selectedCustomerId ? (
-              <p className={styles.help}>Selecciona un cliente para continuar.</p>
+              <p className={styles.help}>
+                Selecciona un cliente para continuar.
+              </p>
             ) : null}
           </section>
 
           <section className={`${styles.panel} ${styles.panelStack}`}>
             <div className={styles.headerRow}>
-              <h2 className={styles.cardTitle}>Servicios</h2>
+              <h2 className={`${styles.sectionTitle} ${orderStyles.stepTitle}`}>
+                <span className={orderStyles.stepIndex} aria-hidden="true">
+                  2
+                </span>
+                Servicios
+              </h2>
               <button
                 type="button"
                 className={`${styles.button} ${styles.buttonSecondary}`}
@@ -354,11 +401,20 @@ export function NewOrderForm({
             </div>
 
             {lines.map((line, index) => {
-              const service = services.find((item) => item.id === line.service_id);
+              const service = services.find(
+                (item) => item.id === line.service_id,
+              );
+              const lineTotal =
+                service && Number(line.quantity) > 0
+                  ? service.current_price * Number(line.quantity)
+                  : null;
+
               return (
                 <div key={line.key} className={orderStyles.lineCard}>
                   <div className={orderStyles.lineHeader}>
-                    <h3 className={orderStyles.lineTitle}>Línea {index + 1}</h3>
+                    <h3 className={orderStyles.lineTitle}>
+                      Línea {index + 1}
+                    </h3>
                     {lines.length > 1 ? (
                       <button
                         type="button"
@@ -450,11 +506,16 @@ export function NewOrderForm({
 
                   {service ? (
                     <p className={styles.help}>
-                      Precio de referencia: {formatCurrency(service.current_price)}{" "}
-                      · estimado línea:{" "}
-                      {formatCurrency(
-                        service.current_price * (Number(line.quantity) || 0),
-                      )}
+                      Precio: {formatCurrency(service.current_price)}
+                      {lineTotal !== null ? (
+                        <>
+                          {" "}
+                          ·{" "}
+                          <span className={orderStyles.lineEstimate}>
+                            {formatCurrency(lineTotal)}
+                          </span>
+                        </>
+                      ) : null}
                     </p>
                   ) : null}
                 </div>
@@ -463,32 +524,29 @@ export function NewOrderForm({
           </section>
 
           <section className={`${styles.panel} ${styles.panelStack}`}>
-            <h2 className={styles.cardTitle}>Pago completo</h2>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor={`${formId}-payment-method`}>
-                Método de pago
-              </label>
-              <select
-                id={`${formId}-payment-method`}
-                className={styles.select}
-                value={paymentMethod}
-                onChange={(event) => {
-                  const method = event.target.value as PaymentMethod;
-                  setPaymentMethod(method);
-                  setCashReceived("");
-                  setPaymentReference("");
-                }}
-              >
-                <option value="cash">Efectivo</option>
-                <option value="yape">Yape</option>
-                <option value="plin">Plin</option>
-              </select>
-            </div>
+            <h2 className={`${styles.sectionTitle} ${orderStyles.stepTitle}`}>
+              <span className={orderStyles.stepIndex} aria-hidden="true">
+                3
+              </span>
+              Pago completo
+            </h2>
+            <PaymentMethodSegmented
+              id={`${formId}-payment-method`}
+              value={paymentMethod}
+              onChange={(method) => {
+                setPaymentMethod(method);
+                setCashReceived("");
+                setPaymentReference("");
+              }}
+            />
 
             {paymentMethod === "cash" ? (
               <>
                 <div className={styles.field}>
-                  <label className={styles.label} htmlFor={`${formId}-cash-received`}>
+                  <label
+                    className={styles.label}
+                    htmlFor={`${formId}-cash-received`}
+                  >
                     Efectivo recibido
                   </label>
                   <input
@@ -508,7 +566,10 @@ export function NewOrderForm({
               </>
             ) : (
               <div className={styles.field}>
-                <label className={styles.label} htmlFor={`${formId}-payment-reference`}>
+                <label
+                  className={styles.label}
+                  htmlFor={`${formId}-payment-reference`}
+                >
                   Referencia opcional
                 </label>
                 <input
@@ -524,7 +585,12 @@ export function NewOrderForm({
           </section>
 
           <section className={`${styles.panel} ${styles.panelStack}`}>
-            <h2 className={styles.cardTitle}>Fecha programada</h2>
+            <h2 className={`${styles.sectionTitle} ${orderStyles.stepTitle}`}>
+              <span className={orderStyles.stepIndex} aria-hidden="true">
+                4
+              </span>
+              Fecha programada
+            </h2>
             <div className={styles.field}>
               <label className={styles.label} htmlFor={`${formId}-scheduled`}>
                 Fecha y hora (hora de Lima)
@@ -542,74 +608,120 @@ export function NewOrderForm({
         </div>
 
         <aside className={orderStyles.summarySticky} aria-live="polite">
-          <div className={styles.panelStack}>
-            <h2 className={styles.cardTitle}>Resumen</h2>
-            <div className={orderStyles.totalsRow}>
-              <span>Subtotal estimado</span>
-              <strong className={orderStyles.totalsStrong}>
-                {formatCurrency(estimatedSubtotal)}
-              </strong>
-            </div>
-            <p className={styles.help}>
-              El total definitivo lo calcula el servidor al confirmar el pedido.
+          <div className={orderStyles.summaryHeader}>
+            <p className={orderStyles.summaryTotalLabel}>Total estimado</p>
+            <p className={orderStyles.summaryTotalValue}>
+              {formatCurrency(estimatedSubtotal)}
             </p>
-
-            <form
-              action={orderAction}
-              className={styles.form}
-              onSubmit={(event) => {
-                if (orderPending) {
-                  event.preventDefault();
-                }
-              }}
-            >
-              <input type="hidden" name="operation_id" value={operationId} />
-              <input
-                type="hidden"
-                name="customer_id"
-                value={selectedCustomerId}
-              />
-              <input type="hidden" name="scheduled_for" value={scheduledFor} />
-              <input type="hidden" name="payment_method" value={paymentMethod} />
-              <input type="hidden" name="cash_received" value={cashReceived} />
-              <input
-                type="hidden"
-                name="payment_reference"
-                value={paymentReference}
-              />
-              <input
-                type="hidden"
-                name="items"
-                value={JSON.stringify(
-                  lines
-                    .filter((line) => line.service_id)
-                    .map((line) => ({
-                      service_id: line.service_id,
-                      quantity: line.quantity,
-                    })),
-                )}
-              />
-
-              {orderState.message ? (
-                <Alert tone={orderState.success ? "success" : "error"}>
-                  {orderState.message}
-                </Alert>
-              ) : null}
-
-              <button
-                type="submit"
-                className={`${styles.button} ${styles.buttonPrimary} ${styles.buttonAction}`}
-                disabled={
-                  orderPending ||
-                  !selectedCustomerId ||
-                  lines.every((line) => !line.service_id) ||
-                  (paymentMethod === "cash" && !cashReceived)
-                }
-              >
-                {orderPending ? "Guardando pedido y pago…" : "Guardar pedido y pago"}
-              </button>
-            </form>
+            <p className={styles.help}>
+              El total definitivo lo confirma el servidor al guardar.
+            </p>
           </div>
+
+          <div className={orderStyles.summaryBlock}>
+            <p className={styles.label}>Cliente</p>
+            {selectedCustomer ? (
+              <>
+                <p className={orderStyles.selectedCustomerName}>
+                  {selectedCustomer.name}
+                </p>
+                <p className={styles.help}>
+                  {selectedCustomer.phone ?? "Sin teléfono"}
+                </p>
+              </>
+            ) : (
+              <p className={styles.help}>Sin cliente seleccionado</p>
+            )}
+          </div>
+
+          <div className={orderStyles.summaryBlock}>
+            <p className={styles.label}>Servicios</p>
+            {summaryLines.length > 0 ? (
+              <ul className={orderStyles.summaryLines}>
+                {summaryLines.map((line) => (
+                  <li key={line.key} className={orderStyles.summaryLine}>
+                    <span className={orderStyles.summaryLineName}>
+                      {line.name} · {line.quantity} {line.unit}
+                    </span>
+                    <span className={orderStyles.summaryLineAmount}>
+                      {formatCurrency(line.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.help}>Añade al menos un servicio</p>
+            )}
+          </div>
+
+          <div className={orderStyles.summaryBlock}>
+            <div className={orderStyles.totalsRow}>
+              <span>Método</span>
+              <strong>{getPaymentMethodLabel(paymentMethod)}</strong>
+            </div>
+            {paymentMethod === "cash" && cashReceived ? (
+              <div className={orderStyles.totalsRow}>
+                <span>Vuelto</span>
+                <strong>{formatCurrency(estimatedChange)}</strong>
+              </div>
+            ) : null}
+          </div>
+
+          <form
+            action={orderAction}
+            className={styles.form}
+            onSubmit={(event) => {
+              if (orderPending) {
+                event.preventDefault();
+              }
+            }}
+          >
+            <input type="hidden" name="operation_id" value={operationId} />
+            <input
+              type="hidden"
+              name="customer_id"
+              value={selectedCustomerId}
+            />
+            <input type="hidden" name="scheduled_for" value={scheduledFor} />
+            <input type="hidden" name="payment_method" value={paymentMethod} />
+            <input type="hidden" name="cash_received" value={cashReceived} />
+            <input
+              type="hidden"
+              name="payment_reference"
+              value={paymentReference}
+            />
+            <input
+              type="hidden"
+              name="items"
+              value={JSON.stringify(
+                lines
+                  .filter((line) => line.service_id)
+                  .map((line) => ({
+                    service_id: line.service_id,
+                    quantity: line.quantity,
+                  })),
+              )}
+            />
+
+            {orderState.message ? (
+              <Alert tone={orderState.success ? "success" : "error"}>
+                {orderState.message}
+              </Alert>
+            ) : null}
+
+            <button
+              type="submit"
+              className={`${styles.button} ${styles.buttonPrimary} ${styles.buttonAction}`}
+              disabled={orderPending || !canSubmit}
+            >
+              {orderPending
+                ? "Guardando pedido y pago…"
+                : "Guardar pedido y pago"}
+            </button>
+            <p className={styles.help}>
+              Al confirmar, se abre el detalle del pedido creado.
+            </p>
+          </form>
         </aside>
       </div>
     </div>

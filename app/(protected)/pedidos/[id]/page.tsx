@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrderStatusActions } from "@/components/orders/order-status-actions";
@@ -5,16 +6,17 @@ import {
   PayBalanceForm,
   VoidPaymentForm,
 } from "@/components/payments/payment-actions";
+import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import styles from "@/components/ui/ui.module.css";
 import orderStyles from "@/components/orders/orders.module.css";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
+import { getOpenCashSession } from "@/lib/cash/queries";
 import { formatCurrency } from "@/lib/format/money";
 import { formatDateTimeLima } from "@/lib/orders/datetime";
 import { getOrderDetail } from "@/lib/orders/queries";
 import { getOrderStatusLabel } from "@/lib/orders/status";
-import { getServiceUnitLabel } from "@/lib/services/labels";
 import { getPaymentMethodLabel } from "@/lib/payments/labels";
-import { getOpenCashSession } from "@/lib/cash/queries";
+import { getServiceUnitLabel } from "@/lib/services/labels";
 
 type OrderDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -40,29 +42,70 @@ export default async function OrderDetailPage({
   }
 
   const { order, customer, items, history, payments } = detail;
+  const balanceDue = Number(order.balance_due);
 
   return (
     <div className={styles.page}>
-      <header className={styles.headerRow}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>{order.order_number}</h1>
-          <p className={styles.subtitle}>Detalle del pedido</p>
-        </div>
-        <span className={`${styles.badge} ${styles.badgeActive}`}>
-          {getOrderStatusLabel(order.status)}
-        </span>
+      <header className={styles.header}>
+        <p className={styles.eyebrow}>Detalle del pedido</p>
+        <h1 className={styles.title}>{order.order_number}</h1>
       </header>
+
+      <section className={styles.detailSummary} aria-label="Resumen del pedido">
+        <div className={styles.detailSummaryTop}>
+          <div>
+            <p className={styles.detailKpiLabel}>Cliente</p>
+            <p className={styles.cardTitle}>
+              {customer?.name ?? "Cliente no disponible"}
+            </p>
+            <p className={styles.help}>{customer?.phone ?? "Sin teléfono"}</p>
+          </div>
+          <OrderStatusBadge status={order.status} />
+        </div>
+
+        <div className={styles.detailSummaryGrid}>
+          <div className={styles.detailKpi}>
+            <p className={styles.detailKpiLabel}>Total</p>
+            <p className={styles.detailKpiValueMuted}>
+              {formatCurrency(order.total)}
+            </p>
+          </div>
+          <div className={styles.detailKpi}>
+            <p className={styles.detailKpiLabel}>Pagado</p>
+            <p className={styles.detailKpiValueMuted}>
+              {formatCurrency(order.amount_paid)}
+            </p>
+          </div>
+          <div className={styles.detailKpi}>
+            <p className={styles.detailKpiLabel}>Saldo</p>
+            <p
+              className={[
+                styles.detailKpiValue,
+                balanceDue > 0 ? styles.detailKpiValueWarn : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {formatCurrency(balanceDue)}
+            </p>
+          </div>
+        </div>
+
+        <p className={styles.help}>
+          Programado: {formatDateTimeLima(order.scheduled_for)}
+        </p>
+      </section>
 
       <OrderStatusActions
         orderId={order.id}
         status={order.status}
-        balanceDue={Number(order.balance_due)}
+        balanceDue={balanceDue}
         role={profile.role}
       />
 
-      {order.balance_due > 0 && order.status !== "cancelled" ? (
+      {balanceDue > 0 && order.status !== "cancelled" ? (
         <section className={`${styles.panel} ${styles.panelStack}`}>
-          <h2 className={styles.cardTitle}>Pagar saldo completo</h2>
+          <h2 className={styles.sectionTitle}>Pagar saldo completo</h2>
           <PayBalanceForm
             orderId={order.id}
             balanceDue={order.balance_due}
@@ -72,7 +115,7 @@ export default async function OrderDetailPage({
       ) : null}
 
       <section className={`${styles.panel} ${styles.panelStack}`}>
-        <h2 className={styles.cardTitle}>Cliente</h2>
+        <h2 className={styles.sectionTitle}>Cliente</h2>
         <div className={orderStyles.detailGrid}>
           <div>
             <p className={orderStyles.detailLabel}>Nombre</p>
@@ -96,7 +139,7 @@ export default async function OrderDetailPage({
       </section>
 
       <section className={`${styles.panel} ${styles.panelStack}`}>
-        <h2 className={styles.cardTitle}>Fechas</h2>
+        <h2 className={styles.sectionTitle}>Fechas</h2>
         <div className={`${styles.formGrid} ${styles.formGridTwo}`}>
           <div>
             <p className={orderStyles.detailLabel}>Recepción</p>
@@ -136,7 +179,9 @@ export default async function OrderDetailPage({
           ) : null}
         </div>
         {order.cancel_reason ? (
-          <p className={styles.help}>Motivo de cancelación: {order.cancel_reason}</p>
+          <p className={styles.help}>
+            Motivo de cancelación: {order.cancel_reason}
+          </p>
         ) : null}
         {order.delivery_with_balance_reason ? (
           <p className={styles.help}>
@@ -146,7 +191,7 @@ export default async function OrderDetailPage({
       </section>
 
       <section className={styles.panelStack} aria-labelledby="order-lines">
-        <h2 id="order-lines" className={styles.cardTitle}>
+        <h2 id="order-lines" className={styles.sectionTitle}>
           Servicios
         </h2>
 
@@ -182,8 +227,12 @@ export default async function OrderDetailPage({
                     <td>{item.service_name_snapshot}</td>
                     <td>{getServiceUnitLabel(item.unit_snapshot)}</td>
                     <td>{formatQuantity(item.quantity)}</td>
-                    <td>{formatCurrency(item.unit_price)}</td>
-                    <td>{formatCurrency(item.line_total)}</td>
+                    <td className={orderStyles.moneyCell}>
+                      {formatCurrency(item.unit_price)}
+                    </td>
+                    <td className={orderStyles.moneyCell}>
+                      {formatCurrency(item.line_total)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -193,7 +242,7 @@ export default async function OrderDetailPage({
       </section>
 
       <section className={`${styles.panel} ${styles.panelStack}`}>
-        <h2 className={styles.cardTitle}>Totales</h2>
+        <h2 className={styles.sectionTitle}>Totales</h2>
         <div className={orderStyles.totalsRow}>
           <span>Subtotal</span>
           <span>{formatCurrency(order.subtotal)}</span>
@@ -214,12 +263,16 @@ export default async function OrderDetailPage({
         </div>
         <div className={orderStyles.totalsRow}>
           <span>Saldo</span>
-          <strong>{formatCurrency(order.balance_due)}</strong>
+          <strong
+            className={balanceDue > 0 ? styles.balanceDueWarn : undefined}
+          >
+            {formatCurrency(balanceDue)}
+          </strong>
         </div>
       </section>
 
       <section className={`${styles.panel} ${styles.panelStack}`}>
-        <h2 className={styles.cardTitle}>Pagos</h2>
+        <h2 className={styles.sectionTitle}>Pagos</h2>
         {payments.length === 0 ? (
           <p className={styles.help}>Sin pagos registrados.</p>
         ) : (
@@ -237,7 +290,9 @@ export default async function OrderDetailPage({
                     {formatCurrency(payment.change_given ?? 0)}
                   </span>
                 ) : null}
-                {payment.reference ? <span>Referencia: {payment.reference}</span> : null}
+                {payment.reference ? (
+                  <span>Referencia: {payment.reference}</span>
+                ) : null}
                 {payment.status === "voided" ? (
                   <span>Anulado: {payment.void_reason}</span>
                 ) : null}
@@ -251,7 +306,7 @@ export default async function OrderDetailPage({
       </section>
 
       <section className={`${styles.panel} ${styles.panelStack}`}>
-        <h2 className={styles.cardTitle}>Historial</h2>
+        <h2 className={styles.sectionTitle}>Historial</h2>
         {history.length === 0 ? (
           <p className={styles.help}>Sin eventos de historial.</p>
         ) : (
@@ -278,6 +333,12 @@ export default async function OrderDetailPage({
           </ol>
         )}
       </section>
+
+      <p>
+        <Link href="/" className={styles.textLink}>
+          ← Volver a inicio
+        </Link>
+      </p>
     </div>
   );
 }

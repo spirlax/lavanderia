@@ -28,6 +28,28 @@ export function getOrderStatusLabel(status: OrderStatus): string {
   return ORDER_STATUS_LABELS[status];
 }
 
+export type OrderStatusTone =
+  | "info"
+  | "process"
+  | "success"
+  | "muted"
+  | "danger";
+
+export function getOrderStatusTone(status: OrderStatus): OrderStatusTone {
+  switch (status) {
+    case "received":
+      return "info";
+    case "in_process":
+      return "process";
+    case "ready":
+      return "success";
+    case "delivered":
+      return "muted";
+    case "cancelled":
+      return "danger";
+  }
+}
+
 export function isActiveOrderStatus(
   status: OrderStatus,
 ): status is ActiveOrderStatus {

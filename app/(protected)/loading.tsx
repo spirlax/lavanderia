@@ -1,12 +1,7 @@
-import styles from "@/components/ui/ui.module.css";
+import { PageLoading } from "@/components/ui/page-loading";
 
 export default function HomeLoading() {
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Inicio</h1>
-        <p className={styles.subtitle}>Cargando pedidos activos…</p>
-      </header>
-    </div>
+    <PageLoading title="Inicio" message="Cargando pedidos activos…" />
   );
 }

@@ -2,6 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
+import {
+  BarChart3,
+  CirclePlus,
+  Home,
+  KeyRound,
+  LayoutDashboard,
+  Menu,
+  MoreHorizontal,
+  Search,
+  Shirt,
+  Upload,
+  Users,
+  Wallet,
+  X,
+} from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -21,22 +37,48 @@ import type { Profile } from "@/lib/auth/types";
 
 type AppShellProps = {
   profile: Profile;
+  cashSessionOpen: boolean;
   children: ReactNode;
+};
+
+type NavLink = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  match: "exact" | "prefix";
+};
+
+type NavGroup = {
+  title?: string;
+  links: NavLink[];
 };
 
 function isAdminArea(pathname: string): boolean {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
+function isLinkActive(pathname: string, link: NavLink): boolean {
+  if (link.match === "exact") {
+    return pathname === link.href;
+  }
+  return pathname === link.href || pathname.startsWith(`${link.href}/`);
+}
+
+function roleLabel(role: Profile["role"]): string {
+  return role === "admin" ? "Administrador" : "Operadora";
+}
+
 function NavItem({
   href,
   label,
+  icon: Icon,
   active,
   onNavigate,
   className,
 }: {
   href: string;
   label: string;
+  icon: LucideIcon;
   active: boolean;
   onNavigate?: () => void;
   className?: string;
@@ -50,16 +92,135 @@ function NavItem({
       aria-current={active ? "page" : undefined}
       onClick={onNavigate}
     >
-      {label}
+      <Icon className={styles.navIcon} aria-hidden="true" />
+      <span>{label}</span>
     </Link>
   );
 }
 
-function roleLabel(role: Profile["role"]): string {
-  return role === "admin" ? "Administrador" : "Operadora";
+function CashStatusChip({ open }: { open: boolean }) {
+  return (
+    <span
+      className={[
+        styles.cashChip,
+        open ? styles.cashChipOpen : styles.cashChipClosed,
+      ].join(" ")}
+    >
+      {open ? "Caja abierta" : "Caja cerrada"}
+    </span>
+  );
 }
 
-export function AppShell({ profile, children }: AppShellProps) {
+function AdminNavGroups({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const groups: NavGroup[] = [
+    {
+      links: [
+        {
+          href: "/admin",
+          label: "Panel",
+          icon: LayoutDashboard,
+          match: "exact",
+        },
+      ],
+    },
+    {
+      title: "Operación",
+      links: [
+        { href: "/", label: "Inicio", icon: Home, match: "exact" },
+        {
+          href: "/nuevo",
+          label: "Nuevo pedido",
+          icon: CirclePlus,
+          match: "prefix",
+        },
+        { href: "/buscar", label: "Buscar", icon: Search, match: "prefix" },
+        { href: "/clientes", label: "Clientes", icon: Users, match: "prefix" },
+      ],
+    },
+    {
+      title: "Caja y finanzas",
+      links: [
+        {
+          href: "/admin/caja",
+          label: "Caja",
+          icon: Wallet,
+          match: "prefix",
+        },
+        {
+          href: "/admin/reportes",
+          label: "Reportes",
+          icon: BarChart3,
+          match: "prefix",
+        },
+      ],
+    },
+    {
+      title: "Catálogo y datos",
+      links: [
+        {
+          href: "/admin/servicios",
+          label: "Servicios",
+          icon: Shirt,
+          match: "prefix",
+        },
+        {
+          href: "/admin/importaciones",
+          label: "Importaciones",
+          icon: Upload,
+          match: "prefix",
+        },
+      ],
+    },
+    {
+      title: "Acceso",
+      links: [
+        {
+          href: "/admin/pin",
+          label: "PIN",
+          icon: KeyRound,
+          match: "prefix",
+        },
+      ],
+    },
+  ];
+
+  return (
+    <>
+      {groups.map((group) => (
+        <div
+          key={group.title ?? group.links[0]?.href ?? "group"}
+          className={styles.navGroup}
+        >
+          {group.title ? (
+            <p className={styles.navGroupTitle}>{group.title}</p>
+          ) : null}
+          {group.links.map((link) => (
+            <NavItem
+              key={link.href}
+              href={link.href}
+              label={link.label}
+              icon={link.icon}
+              active={isLinkActive(pathname, link)}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+export function AppShell({
+  profile,
+  cashSessionOpen,
+  children,
+}: AppShellProps) {
   const pathname = usePathname();
   const showAdminChrome =
     canAccessAdmin(profile.role) && isAdminArea(pathname);
@@ -68,7 +229,11 @@ export function AppShell({ profile, children }: AppShellProps) {
 
   if (showAdminChrome) {
     return (
-      <AdminShell profile={profile} pathname={pathname}>
+      <AdminShell
+        profile={profile}
+        pathname={pathname}
+        cashSessionOpen={cashSessionOpen}
+      >
         {children}
       </AdminShell>
     );
@@ -76,7 +241,11 @@ export function AppShell({ profile, children }: AppShellProps) {
 
   if (showOperationalChrome) {
     return (
-      <OperationalShell profile={profile} pathname={pathname}>
+      <OperationalShell
+        profile={profile}
+        pathname={pathname}
+        cashSessionOpen={cashSessionOpen}
+      >
         {children}
       </OperationalShell>
     );
@@ -88,10 +257,12 @@ export function AppShell({ profile, children }: AppShellProps) {
 function AdminShell({
   profile,
   pathname,
+  cashSessionOpen,
   children,
 }: {
   profile: Profile;
   pathname: string;
+  cashSessionOpen: boolean;
   children: ReactNode;
 }) {
   const [openPath, setOpenPath] = useState<string | null>(null);
@@ -114,70 +285,28 @@ function AdminShell({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
-  const links = (
-    <>
-      <NavItem
-        href="/admin"
-        label="Panel"
-        active={pathname === "/admin"}
-        onNavigate={close}
-      />
-      <NavItem
-        href="/"
-        label="Operación"
-        active={false}
-        onNavigate={close}
-      />
-      <NavItem
-        href="/nuevo"
-        label="Nuevo pedido"
-        active={false}
-        onNavigate={close}
-      />
-      <NavItem
-        href="/buscar"
-        label="Buscar pedidos"
-        active={false}
-        onNavigate={close}
-      />
-      <NavItem
-        href="/clientes"
-        label="Clientes"
-        active={false}
-        onNavigate={close}
-      />
-      <NavItem
-        href="/admin/servicios"
-        label="Servicios"
-        active={pathname.startsWith("/admin/servicios")}
-        onNavigate={close}
-      />
-      <NavItem
-        href="/admin/caja"
-        label="Caja"
-        active={pathname.startsWith("/admin/caja")}
-        onNavigate={close}
-      />
-      <NavItem href="/admin/reportes" label="Reportes" active={pathname.startsWith("/admin/reportes")} onNavigate={close} />
-      <NavItem href="/admin/importaciones" label="Importaciones" active={pathname.startsWith("/admin/importaciones")} onNavigate={close} />
-      <NavItem href="/admin/pin" label="PIN" active={pathname.startsWith("/admin/pin")} onNavigate={close} />
-    </>
-  );
+  const navigation = <AdminNavGroups pathname={pathname} onNavigate={close} />;
 
   return (
     <div className={`${styles.shell} ${styles.shellAdmin}`}>
-      <aside className={styles.shellAdminDesktop} aria-label="Navegación administrativa">
+      <aside
+        className={styles.shellAdminDesktop}
+        aria-label="Navegación administrativa"
+      >
         <div className={styles.sidebar}>
           <div className={styles.sidebarInner}>
-            <div>
+            <div className={styles.brandBlock}>
               <p className={styles.brand}>Gestión de lavandería</p>
               <p className={styles.userRole}>Panel administrativo</p>
+              <CashStatusChip open={cashSessionOpen} />
             </div>
-            <nav className={styles.sidebarNav}>{links}</nav>
+            <nav className={styles.sidebarNav}>{navigation}</nav>
             <div className={styles.drawerFooter}>
               <div className={styles.userBlock}>
                 <span className={styles.userName}>{profile.full_name}</span>
-                <span className={styles.userRole}>{roleLabel(profile.role)}</span>
+                <span className={styles.userRole}>
+                  {roleLabel(profile.role)}
+                </span>
               </div>
               <LogoutButton />
             </div>
@@ -187,15 +316,19 @@ function AdminShell({
 
       <div className={styles.adminMobileChrome}>
         <header className={styles.mobileHeader}>
-          <p className={styles.brand}>Gestión de lavandería</p>
+          <div className={styles.headerCopy}>
+            <p className={styles.brand}>Gestión de lavandería</p>
+            <CashStatusChip open={cashSessionOpen} />
+          </div>
           <button
             type="button"
             className={styles.iconButton}
             aria-expanded={open}
             aria-controls={titleId}
+            aria-label="Abrir menú"
             onClick={() => setOpenPath(pathname)}
           >
-            Menú
+            <Menu aria-hidden="true" size={20} />
           </button>
         </header>
 
@@ -219,12 +352,13 @@ function AdminShell({
                 <button
                   type="button"
                   className={styles.iconButton}
+                  aria-label="Cerrar menú"
                   onClick={close}
                 >
-                  Cerrar
+                  <X aria-hidden="true" size={20} />
                 </button>
               </div>
-              <nav className={styles.drawerNav}>{links}</nav>
+              <nav className={styles.drawerNav}>{navigation}</nav>
               <div className={styles.drawerFooter}>
                 <div className={styles.userBlock}>
                   <span className={styles.userName}>{profile.full_name}</span>
@@ -247,10 +381,12 @@ function AdminShell({
 function OperationalShell({
   profile,
   pathname,
+  cashSessionOpen,
   children,
 }: {
   profile: Profile;
   pathname: string;
+  cashSessionOpen: boolean;
   children: ReactNode;
 }) {
   const [menuPath, setMenuPath] = useState<string | null>(null);
@@ -287,49 +423,52 @@ function OperationalShell({
     };
   }, [menuOpen]);
 
-  const primaryLinks = [
-    { href: "/", label: "Inicio" },
-    { href: "/nuevo", label: "Nuevo pedido" },
-    { href: "/buscar", label: "Buscar" },
-  ] as const;
+  const primaryLinks: NavLink[] = [
+    { href: "/", label: "Inicio", icon: Home, match: "exact" },
+    { href: "/nuevo", label: "Nuevo", icon: CirclePlus, match: "prefix" },
+    { href: "/buscar", label: "Buscar", icon: Search, match: "prefix" },
+    { href: "/caja", label: "Caja", icon: Wallet, match: "prefix" },
+  ];
+
+  const desktopLinks: NavLink[] = [
+    { href: "/", label: "Inicio", icon: Home, match: "exact" },
+    {
+      href: "/nuevo",
+      label: "Nuevo pedido",
+      icon: CirclePlus,
+      match: "prefix",
+    },
+    { href: "/buscar", label: "Buscar", icon: Search, match: "prefix" },
+    { href: "/clientes", label: "Clientes", icon: Users, match: "prefix" },
+    { href: "/caja", label: "Caja", icon: Wallet, match: "prefix" },
+  ];
 
   return (
     <div className={`${styles.shell} ${styles.shellOperational}`}>
       <header className={styles.topOperational}>
         <div className={styles.topOperationalInner}>
-          <div>
+          <div className={styles.brandBlock}>
             <p className={styles.brand}>Gestión de lavandería</p>
             <p className={styles.userRole}>
               {profile.full_name} · {roleLabel(profile.role)}
             </p>
+            <CashStatusChip open={cashSessionOpen} />
           </div>
           <nav className={styles.topOperationalNav} aria-label="Operación">
-            {primaryLinks.map((link) => (
+            {desktopLinks.map((link) => (
               <NavItem
                 key={link.href}
                 href={link.href}
                 label={link.label}
-                active={
-                  link.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(link.href)
-                }
+                icon={link.icon}
+                active={isLinkActive(pathname, link)}
               />
             ))}
-            <NavItem
-              href="/clientes"
-              label="Clientes"
-              active={pathname.startsWith("/clientes")}
-            />
-            <NavItem
-              href="/caja"
-              label="Caja"
-              active={pathname.startsWith("/caja")}
-            />
             {isAdmin ? (
               <NavItem
                 href="/admin"
-                label="Volver al panel administrativo"
+                label="Panel"
+                icon={LayoutDashboard}
                 active={false}
                 className={styles.navLinkPrimary}
               />
@@ -340,9 +479,12 @@ function OperationalShell({
       </header>
 
       <header className={styles.mobileHeader}>
-        <div>
+        <div className={styles.headerCopy}>
           <p className={styles.brand}>Gestión de lavandería</p>
-          <p className={styles.userRole}>{profile.full_name}</p>
+          <div className={styles.headerMeta}>
+            <p className={styles.userRole}>{profile.full_name}</p>
+            <CashStatusChip open={cashSessionOpen} />
+          </div>
         </div>
         {isAdmin ? (
           <Link href="/admin" className={styles.mobileAdminLink}>
@@ -355,10 +497,8 @@ function OperationalShell({
 
       <nav className={styles.bottomNav} aria-label="Navegación operativa">
         {primaryLinks.map((link) => {
-          const active =
-            link.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.href);
+          const active = isLinkActive(pathname, link);
+          const Icon = link.icon;
 
           return (
             <Link
@@ -372,7 +512,8 @@ function OperationalShell({
                 .join(" ")}
               aria-current={active ? "page" : undefined}
             >
-              {link.label}
+              <Icon className={styles.bottomNavIcon} aria-hidden="true" />
+              <span>{link.label}</span>
             </Link>
           );
         })}
@@ -381,9 +522,7 @@ function OperationalShell({
             type="button"
             className={[
               styles.bottomNavLink,
-              menuOpen ||
-              pathname.startsWith("/clientes") ||
-              pathname.startsWith("/caja")
+              menuOpen || pathname.startsWith("/clientes")
                 ? styles.bottomNavLinkActive
                 : "",
             ]
@@ -395,7 +534,11 @@ function OperationalShell({
               setMenuPath((current) => (current === pathname ? null : pathname))
             }
           >
-            Más
+            <MoreHorizontal
+              className={styles.bottomNavIcon}
+              aria-hidden="true"
+            />
+            <span>Más</span>
           </button>
           {menuOpen ? (
             <div id={morePanelId} className={styles.secondaryPanel}>
@@ -404,14 +547,8 @@ function OperationalShell({
                 className={styles.secondaryItem}
                 onClick={() => setMenuPath(null)}
               >
-                Clientes
-              </Link>
-              <Link
-                href="/caja"
-                className={styles.secondaryItem}
-                onClick={() => setMenuPath(null)}
-              >
-                Caja del día
+                <Users className={styles.navIcon} aria-hidden="true" />
+                <span>Clientes</span>
               </Link>
               <LogoutButton className={styles.secondaryLogout} />
             </div>

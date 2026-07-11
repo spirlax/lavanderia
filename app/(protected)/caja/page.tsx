@@ -30,7 +30,9 @@ export default async function CashPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Caja del día</h1>
-        <p className={styles.subtitle}>Una sola caja compartida para ambas operadoras.</p>
+        <p className={styles.subtitle}>
+          Una sola caja compartida para ambas operadoras.
+        </p>
       </header>
 
       {summary ? (
@@ -43,7 +45,7 @@ export default async function CashPage() {
 
       {!session && canOpen ? (
         <section className={`${styles.panel} ${styles.panelStack}`}>
-          <h2 className={styles.cardTitle}>Abrir caja</h2>
+          <h2 className={styles.sectionTitle}>Abrir caja</h2>
           <OpenCashSessionForm
             operators={operators}
             ownOperatorId={profile.role === "operator" ? profile.id : undefined}
@@ -52,16 +54,20 @@ export default async function CashPage() {
       ) : null}
 
       {!session && !canOpen ? (
-        <Alert tone="info">La operadora responsable debe abrir la caja.</Alert>
+        <Alert tone="info">
+          La operadora responsable debe abrir la caja.
+        </Alert>
       ) : null}
 
-      {session && canClose ? (
+      {session && canClose && summary ? (
         <section className={`${styles.panel} ${styles.panelStack}`}>
-          <h2 className={styles.cardTitle}>Cerrar jornada</h2>
-          <CloseCashSessionForm sessionId={session.id} />
+          <h2 className={styles.sectionTitle}>Cerrar jornada</h2>
+          <CloseCashSessionForm
+            sessionId={session.id}
+            expectedCash={Number(summary.session.expected_cash)}
+          />
         </section>
       ) : null}
     </div>
   );
 }
-

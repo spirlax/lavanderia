@@ -21,8 +21,7 @@ export default async function NewOrderPage() {
       <header className={styles.header}>
         <h1 className={styles.title}>Nuevo pedido</h1>
         <p className={styles.subtitle}>
-          Registra el pedido y su pago completo en una sola operación. Los
-          precios y el total definitivo los calcula el servidor.
+          Cliente, servicios y pago completo en una sola operación.
         </p>
       </header>
 

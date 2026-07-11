@@ -11,6 +11,7 @@ import {
   setCashManagerPermissionAction,
 } from "@/lib/cash/actions";
 import type { CashOperator } from "@/lib/cash/queries";
+import { formatCurrency } from "@/lib/format/money";
 
 const initialState: ActionResult = { success: false, message: "" };
 
@@ -92,16 +93,33 @@ export function OpenCashSessionForm({
   );
 }
 
-export function CloseCashSessionForm({ sessionId }: { sessionId: string }) {
+export function CloseCashSessionForm({
+  sessionId,
+  expectedCash,
+}: {
+  sessionId: string;
+  expectedCash: number;
+}) {
   const [state, action, pending] = useActionState(
     closeCashSessionAction,
     initialState,
   );
   const [operationId] = useState(() => crypto.randomUUID());
+  const [countedCash, setCountedCash] = useState("");
+  const counted = Number(countedCash);
+  const hasCounted = countedCash.trim() !== "" && Number.isFinite(counted);
+  const difference = hasCounted ? counted - expectedCash : null;
+
   return (
     <form action={action} className={styles.form} noValidate>
       <input type="hidden" name="cash_session_id" value={sessionId} />
       <input type="hidden" name="operation_id" value={operationId} />
+
+      <div className={styles.metric}>
+        <p className={styles.metricLabel}>Efectivo esperado</p>
+        <p className={styles.metricValue}>{formatCurrency(expectedCash)}</p>
+      </div>
+
       <div className={styles.field}>
         <label className={styles.label} htmlFor={`counted-${sessionId}`}>
           Efectivo contado
@@ -111,9 +129,36 @@ export function CloseCashSessionForm({ sessionId }: { sessionId: string }) {
           className={styles.input}
           name="counted_cash"
           inputMode="decimal"
+          value={countedCash}
+          onChange={(event) => setCountedCash(event.target.value)}
           required
         />
       </div>
+
+      {difference !== null ? (
+        <div
+          className={[
+            styles.differenceBanner,
+            difference === 0
+              ? styles.differenceBannerOk
+              : styles.differenceBannerWarn,
+          ].join(" ")}
+          aria-live="polite"
+        >
+          <div>
+            <p className={styles.detailKpiLabel}>Diferencia estimada</p>
+            <p className={styles.detailKpiValue}>
+              {formatCurrency(difference)}
+            </p>
+          </div>
+          <p className={styles.help}>
+            {difference === 0
+              ? "Cuadra con el esperado."
+              : "Se registrará al cerrar la jornada."}
+          </p>
+        </div>
+      ) : null}
+
       <div className={styles.field}>
         <label className={styles.label} htmlFor={`notes-${sessionId}`}>
           Notas de cierre

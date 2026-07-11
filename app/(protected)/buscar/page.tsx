@@ -2,15 +2,13 @@ import Link from "next/link";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { Alert } from "@/components/ui/alert";
+import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import styles from "@/components/ui/ui.module.css";
 import orderStyles from "@/components/orders/orders.module.css";
 import { formatCurrency } from "@/lib/format/money";
 import { formatDateTimeLima } from "@/lib/orders/datetime";
 import { searchOrders } from "@/lib/orders/queries";
-import {
-  getOrderStatusLabel,
-  getOrderStatusOptions,
-} from "@/lib/orders/status";
+import { getOrderStatusOptions } from "@/lib/orders/status";
 import { searchOrdersSchema } from "@/lib/orders/validation";
 
 type SearchPageProps = {
@@ -24,6 +22,25 @@ function readParam(
     return value[0];
   }
   return value;
+}
+
+function buildSearchHref(params: {
+  q?: string;
+  status?: string;
+  date?: string;
+}): string {
+  const search = new URLSearchParams();
+  if (params.q?.trim()) {
+    search.set("q", params.q.trim());
+  }
+  if (params.status) {
+    search.set("status", params.status);
+  }
+  if (params.date) {
+    search.set("date", params.date);
+  }
+  const query = search.toString();
+  return query ? `/buscar?${query}` : "/buscar";
 }
 
 export default async function SearchOrdersPage({
@@ -49,12 +66,15 @@ export default async function SearchOrdersPage({
       <header className={styles.header}>
         <h1 className={styles.title}>Buscar</h1>
         <p className={styles.subtitle}>
-          Busca por número de pedido, cliente o teléfono. Puedes filtrar por
-          estado y fecha de recepción.
+          Localiza pedidos por número, cliente, teléfono, estado o fecha.
         </p>
       </header>
 
       <form method="get" className={`${styles.panel} ${styles.panelStack}`}>
+        {raw.status ? (
+          <input type="hidden" name="status" value={raw.status} />
+        ) : null}
+
         <div className={orderStyles.searchFilters}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="search-q">
@@ -70,25 +90,6 @@ export default async function SearchOrdersPage({
               maxLength={80}
               autoComplete="off"
             />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="search-status">
-              Estado
-            </label>
-            <select
-              id="search-status"
-              className={styles.select}
-              name="status"
-              defaultValue={raw.status}
-            >
-              <option value="">Todos</option>
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className={styles.field}>
@@ -111,6 +112,52 @@ export default async function SearchOrdersPage({
             Buscar
           </button>
         </div>
+
+        <div className={styles.field}>
+          <span className={styles.label} id="status-chips-label">
+            Estado
+          </span>
+          <div
+            className={styles.chipRow}
+            role="group"
+            aria-labelledby="status-chips-label"
+          >
+            <Link
+              href={buildSearchHref({ q: raw.q, date: raw.date })}
+              className={[
+                styles.chip,
+                !raw.status ? styles.chipActive : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              aria-current={!raw.status ? "true" : undefined}
+            >
+              Todos
+            </Link>
+            {statusOptions.map((option) => {
+              const active = raw.status === option.value;
+              return (
+                <Link
+                  key={option.value}
+                  href={buildSearchHref({
+                    q: raw.q,
+                    date: raw.date,
+                    status: option.value,
+                  })}
+                  className={[
+                    styles.chip,
+                    active ? styles.chipActive : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  aria-current={active ? "true" : undefined}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </form>
 
       {!parsed.success ? (
@@ -129,37 +176,48 @@ export default async function SearchOrdersPage({
         />
       ) : (
         <section className={styles.panelStack} aria-labelledby="search-results">
-          <h2 id="search-results" className={styles.cardTitle}>
+          <h2 id="search-results" className={styles.sectionTitle}>
             Resultados · {results.length}
             {results.length >= 40 ? " (máximo 40)" : ""}
           </h2>
 
           <div className={`${styles.gridCards} ${styles.mobileOnly}`}>
-            {results.map((order) => (
-              <Link
-                key={order.id}
-                href={`/pedidos/${order.id}`}
-                className={orderStyles.orderCardLink}
-              >
-                <div className={orderStyles.orderCardTop}>
-                  <p className={orderStyles.orderNumber}>{order.order_number}</p>
-                  <span className={`${styles.badge} ${styles.badgeActive}`}>
-                    {getOrderStatusLabel(order.status)}
-                  </span>
-                </div>
-                <p className={styles.cardTitle}>
-                  {order.customer?.name ?? "Cliente no disponible"}
-                </p>
-                <div className={styles.meta}>
-                  <span>{order.customer?.phone ?? "Sin teléfono"}</span>
-                  <span>
-                    Recepción: {formatDateTimeLima(order.received_at)}
-                  </span>
-                  <span>Total: {formatCurrency(order.total)}</span>
-                  <span>Saldo: {formatCurrency(order.balance_due)}</span>
-                </div>
-              </Link>
-            ))}
+            {results.map((order) => {
+              const balanceDue = Number(order.balance_due);
+              return (
+                <Link
+                  key={order.id}
+                  href={`/pedidos/${order.id}`}
+                  className={orderStyles.orderCardLink}
+                >
+                  <div className={orderStyles.orderCardTop}>
+                    <p className={orderStyles.orderNumber}>
+                      {order.order_number}
+                    </p>
+                    <OrderStatusBadge status={order.status} />
+                  </div>
+                  <p className={orderStyles.orderCardCustomer}>
+                    {order.customer?.name ?? "Cliente no disponible"}
+                  </p>
+                  <div className={orderStyles.orderCardMeta}>
+                    <span className={orderStyles.orderCardMetaPrimary}>
+                      Recepción: {formatDateTimeLima(order.received_at)}
+                    </span>
+                    <span>{order.customer?.phone ?? "Sin teléfono"}</span>
+                    <span>Total: {formatCurrency(order.total)}</span>
+                  </div>
+                  {balanceDue > 0 ? (
+                    <p
+                      className={`${styles.balanceDue} ${styles.balanceDueWarn}`}
+                    >
+                      Saldo: {formatCurrency(balanceDue)}
+                    </p>
+                  ) : (
+                    <p className={styles.balanceClear}>Saldo pagado</p>
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
           <div className={`${styles.panel} ${styles.desktopOnly}`}>
@@ -183,10 +241,16 @@ export default async function SearchOrdersPage({
                       <td>{order.order_number}</td>
                       <td>{order.customer?.name ?? "—"}</td>
                       <td>{order.customer?.phone ?? "—"}</td>
-                      <td>{getOrderStatusLabel(order.status)}</td>
+                      <td>
+                        <OrderStatusBadge status={order.status} />
+                      </td>
                       <td>{formatDateTimeLima(order.received_at)}</td>
-                      <td>{formatCurrency(order.total)}</td>
-                      <td>{formatCurrency(order.balance_due)}</td>
+                      <td className={orderStyles.moneyCell}>
+                        {formatCurrency(order.total)}
+                      </td>
+                      <td className={orderStyles.moneyCell}>
+                        {formatCurrency(order.balance_due)}
+                      </td>
                       <td>
                         <Link
                           href={`/pedidos/${order.id}`}

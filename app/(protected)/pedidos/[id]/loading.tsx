@@ -1,12 +1,5 @@
-import styles from "@/components/ui/ui.module.css";
+import { PageLoading } from "@/components/ui/page-loading";
 
 export default function OrderDetailLoading() {
-  return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Pedido</h1>
-        <p className={styles.subtitle}>Cargando detalle…</p>
-      </header>
-    </div>
-  );
+  return <PageLoading title="Pedido" message="Cargando detalle…" />;
 }

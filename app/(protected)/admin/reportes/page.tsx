@@ -1,23 +1,197 @@
 import Link from "next/link";
-import { getAdminReport, type ReportSource } from "@/lib/reports/queries";
-import styles from "@/components/ui/ui.module.css";
 
-type Props = { searchParams: Promise<{ from?: string; to?: string; source?: ReportSource }> };
-const sourceLabels: Record<ReportSource, string> = { platform: "Plataforma", historical: "Históricos", combined: "Combinado" };
+import styles from "@/components/ui/ui.module.css";
+import { formatCurrency } from "@/lib/format/money";
+import { getAdminReport, type ReportSource } from "@/lib/reports/queries";
+
+type Props = {
+  searchParams: Promise<{ from?: string; to?: string; source?: ReportSource }>;
+};
+
+const sourceLabels: Record<ReportSource, string> = {
+  platform: "Plataforma",
+  historical: "Históricos",
+  combined: "Combinado",
+};
 
 export default async function ReportsPage({ searchParams }: Props) {
   const params = await searchParams;
   const to = params.to ?? new Date().toISOString().slice(0, 10);
   const from = params.from ?? `${to.slice(0, 8)}01`;
-  const source: ReportSource = params.source === "historical" || params.source === "combined" ? params.source : "platform";
+  const source: ReportSource =
+    params.source === "historical" || params.source === "combined"
+      ? params.source
+      : "platform";
   const report = await getAdminReport(from, to, source);
-  return <div className={styles.page}><header className={styles.header}><h1 className={styles.title}>Reportes y BI</h1><p className={styles.subtitle}>Origen actual: <strong>{sourceLabels[source]}</strong>. {report.note}</p></header>
-    <form className="mb-6 flex flex-wrap items-end gap-3" method="get"><label>Desde<input className="ml-2 rounded border p-2" type="date" name="from" defaultValue={from} /></label><label>Hasta<input className="ml-2 rounded border p-2" type="date" name="to" defaultValue={to} /></label><label>Origen<select className="ml-2 rounded border p-2" name="source" defaultValue={source}><option value="platform">Plataforma</option><option value="historical">Históricos</option><option value="combined">Combinado</option></select></label><button className="rounded bg-zinc-900 px-4 py-2 text-white" type="submit">Generar</button><Link className="rounded border px-4 py-2" href={`/admin/reportes/export?from=${from}&to=${to}&source=${source}`}>Exportar CSV</Link></form>
-    <p className="mb-4 text-sm text-zinc-600">Periodo: {from} a {to} · Origen: {sourceLabels[source]}</p>
-    <div className="grid gap-3 md:grid-cols-4"><Metric label="Pedidos recibidos" value={report.ordersReceived} /><Metric label="Pedidos entregados" value={report.deliveredOrders} /><Metric label="Pedidos no recogidos" value={report.uncollectedOrders} /><Metric label="Cumplimiento" value={`${report.compliance}%`} /><Metric label="Tasa no recogidos" value={`${report.uncollectedRate}%`} /><Metric label="Ingresos" value={`S/ ${report.revenue.toFixed(2)}`} /><Metric label="Tiempo reporte" value={source === "historical" ? `${report.generationMinutes.toFixed(2)} min (promedio)` : `${report.generationMs} ms`} /></div>
-    {source !== "historical" ? <section className="mt-6 rounded border p-4"><h2 className="text-lg font-semibold">Ingresos de plataforma por método</h2><p>Efectivo: S/ {report.revenueByMethod.cash.toFixed(2)}</p><p>Yape: S/ {report.revenueByMethod.yape.toFixed(2)}</p><p>Plin: S/ {report.revenueByMethod.plin.toFixed(2)}</p></section> : null}
-    {source !== "historical" ? <section className="mt-6 rounded border p-4"><h2 className="text-lg font-semibold">Pedidos listos pendientes</h2>{report.readyPendingOrders.length ? <ul>{report.readyPendingOrders.map((order) => <li key={order.order_number}>{order.order_number} — S/ {order.total.toFixed(2)}</li>)}</ul> : <p>No hay pedidos pendientes.</p>}</section> : null}
-  </div>;
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Reportes y BI</h1>
+        <p className={styles.subtitle}>
+          Origen: <strong>{sourceLabels[source]}</strong>. {report.note}
+        </p>
+      </header>
+
+      <form className={`${styles.panel} ${styles.filterBar}`} method="get">
+        <div className={styles.filterField}>
+          <label className={styles.label} htmlFor="from">
+            Desde
+          </label>
+          <input
+            className={styles.input}
+            id="from"
+            type="date"
+            name="from"
+            defaultValue={from}
+          />
+        </div>
+        <div className={styles.filterField}>
+          <label className={styles.label} htmlFor="to">
+            Hasta
+          </label>
+          <input
+            className={styles.input}
+            id="to"
+            type="date"
+            name="to"
+            defaultValue={to}
+          />
+        </div>
+        <div className={styles.filterField}>
+          <label className={styles.label} htmlFor="source">
+            Origen
+          </label>
+          <select
+            className={styles.select}
+            id="source"
+            name="source"
+            defaultValue={source}
+          >
+            <option value="platform">Plataforma</option>
+            <option value="historical">Históricos</option>
+            <option value="combined">Combinado</option>
+          </select>
+        </div>
+        <button
+          className={`${styles.button} ${styles.buttonPrimary}`}
+          type="submit"
+        >
+          Generar
+        </button>
+        <Link
+          className={`${styles.button} ${styles.buttonSecondary}`}
+          href={`/admin/reportes/export?from=${from}&to=${to}&source=${source}`}
+        >
+          Exportar CSV
+        </Link>
+      </form>
+
+      <section className={styles.panelStack} aria-label="Indicadores principales">
+        <h2 className={styles.sectionTitle}>Indicadores principales</h2>
+        <div className={styles.metricGrid}>
+          <div className={`${styles.metric} ${styles.metricPrimary}`}>
+            <p className={styles.metricLabel}>Ingresos</p>
+            <p className={styles.metricValue}>
+              {formatCurrency(report.revenue)}
+            </p>
+          </div>
+          <div className={styles.metric}>
+            <p className={styles.metricLabel}>Pedidos recibidos</p>
+            <p className={styles.metricValue}>{report.ordersReceived}</p>
+          </div>
+          <div className={styles.metric}>
+            <p className={styles.metricLabel}>Cumplimiento</p>
+            <p className={styles.metricValue}>{report.compliance}%</p>
+          </div>
+          <div className={styles.metric}>
+            <p className={styles.metricLabel}>No recogidos</p>
+            <p className={styles.metricValue}>{report.uncollectedOrders}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.panelStack} aria-label="Indicadores secundarios">
+        <h2 className={styles.sectionTitle}>Detalle operativo</h2>
+        <div className={styles.metricGrid}>
+          <Metric label="Pedidos entregados" value={report.deliveredOrders} />
+          <Metric
+            label="Tasa no recogidos"
+            value={`${report.uncollectedRate}%`}
+          />
+          <Metric
+            label="Tiempo reporte"
+            value={
+              source === "historical"
+                ? `${report.generationMinutes.toFixed(2)} min`
+                : `${report.generationMs} ms`
+            }
+          />
+        </div>
+      </section>
+
+      {source !== "historical" ? (
+        <section className={`${styles.panel} ${styles.panelStack}`}>
+          <h2 className={styles.sectionTitle}>
+            Ingresos de plataforma por método
+          </h2>
+          <ul className={styles.amountList}>
+            <li className={styles.amountRow}>
+              <span>Efectivo</span>
+              <span className={styles.amountValue}>
+                {formatCurrency(report.revenueByMethod.cash)}
+              </span>
+            </li>
+            <li className={styles.amountRow}>
+              <span>Yape</span>
+              <span className={styles.amountValue}>
+                {formatCurrency(report.revenueByMethod.yape)}
+              </span>
+            </li>
+            <li className={styles.amountRow}>
+              <span>Plin</span>
+              <span className={styles.amountValue}>
+                {formatCurrency(report.revenueByMethod.plin)}
+              </span>
+            </li>
+          </ul>
+        </section>
+      ) : null}
+
+      {source !== "historical" ? (
+        <section className={`${styles.panel} ${styles.panelStack}`}>
+          <h2 className={styles.sectionTitle}>Pedidos listos pendientes</h2>
+          {report.readyPendingOrders.length ? (
+            <ul className={styles.amountList}>
+              {report.readyPendingOrders.map((order) => (
+                <li className={styles.amountRow} key={order.order_number}>
+                  <span>{order.order_number}</span>
+                  <span className={styles.amountValue}>
+                    {formatCurrency(order.total)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.help}>No hay pedidos pendientes.</p>
+          )}
+        </section>
+      ) : null}
+    </div>
+  );
 }
 
-function Metric({ label, value }: { label: string; value: string | number }) { return <div className="rounded border p-4"><p className="text-sm text-zinc-600">{label}</p><p className="text-2xl font-semibold">{value}</p></div>; }
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className={styles.metric}>
+      <p className={styles.metricLabel}>{label}</p>
+      <p className={styles.metricValue}>{value}</p>
+    </div>
+  );
+}

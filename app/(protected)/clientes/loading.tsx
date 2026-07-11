@@ -1,12 +1,5 @@
-import styles from "@/components/ui/ui.module.css";
+import { PageLoading } from "@/components/ui/page-loading";
 
 export default function CustomersLoading() {
-  return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Clientes</h1>
-        <p className={styles.subtitle}>Cargando clientes…</p>
-      </header>
-    </div>
-  );
+  return <PageLoading title="Clientes" message="Cargando clientes…" />;
 }
