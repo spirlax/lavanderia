@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
   const hasVerifiedClaims = Boolean(data?.claims);
   const pathname = request.nextUrl.pathname;
   const isPublicRoute =
-    pathname === "/login" || pathname.startsWith("/auth/");
+    pathname === "/login" || pathname === "/operadora" || pathname === "/admin/login" || pathname.startsWith("/auth/");
 
   if (!hasVerifiedClaims && !isPublicRoute) {
     return redirectWithSessionCookies(request, supabaseResponse, "/login");
