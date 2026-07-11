@@ -7,7 +7,10 @@ import {
 import { Alert } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/ui/status-badge";
 import styles from "@/components/ui/ui.module.css";
-import { canUpdateCustomer } from "@/lib/auth/authorization";
+import {
+  canSetCustomerActive,
+  canUpdateCustomer,
+} from "@/lib/auth/authorization";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
 import { getCustomerById } from "@/lib/data/catalog";
 
@@ -31,7 +34,8 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const canManage = canUpdateCustomer(profile.role);
+  const canEdit = canUpdateCustomer(profile.role);
+  const canEditActive = canSetCustomerActive(profile.role);
 
   return (
     <div className={styles.page}>
@@ -61,24 +65,25 @@ export default async function CustomerDetailPage({
         </dl>
       </section>
 
-      {canManage ? (
+      {canEdit ? (
         <>
           <section className={`${styles.panel} ${styles.panelStack}`}>
             <h2 className={styles.cardTitle}>Editar</h2>
             <CustomerForm
               mode="edit"
               customer={customer}
-              canEditActive
+              canEditActive={canEditActive}
             />
           </section>
-          <section className={styles.actions}>
-            <CustomerActiveToggle customer={customer} />
-          </section>
+          {canEditActive ? (
+            <section className={styles.actions}>
+              <CustomerActiveToggle customer={customer} />
+            </section>
+          ) : null}
         </>
       ) : (
         <Alert tone="info">
-          Puedes consultar este cliente. La edición, activación y desactivación
-          están disponibles solo para el Administrador.
+          Puedes consultar este cliente. No tienes permisos de edición.
         </Alert>
       )}
     </div>

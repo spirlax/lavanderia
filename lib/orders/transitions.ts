@@ -24,14 +24,16 @@ export function listAvailableTransitions(
   const actions: AvailableTransition[] = [];
 
   if (status === "received") {
-    actions.push({
-      toStatus: "in_process",
-      label: "Iniciar preparación",
-      confirmLabel: "Iniciar",
-      description: "El pedido pasará a En proceso.",
-      requiresReason: false,
-      tone: "primary",
-    });
+    if (balanceDue <= 0) {
+      actions.push({
+        toStatus: "in_process",
+        label: "Iniciar preparación",
+        confirmLabel: "Iniciar",
+        description: "El pedido pasará a En proceso.",
+        requiresReason: false,
+        tone: "primary",
+      });
+    }
   }
 
   if (status === "in_process") {
@@ -54,16 +56,6 @@ export function listAvailableTransitions(
         description: "Confirma la entrega del pedido al cliente.",
         requiresReason: false,
         tone: "primary",
-      });
-    } else if (role === "admin") {
-      actions.push({
-        toStatus: "delivered",
-        label: "Entregar con saldo",
-        confirmLabel: "Entregar con saldo",
-        description:
-          "Hay saldo pendiente. Debes indicar un motivo para autorizar la entrega.",
-        requiresReason: true,
-        tone: "danger",
       });
     }
 
@@ -142,15 +134,13 @@ export function assertTransitionAllowed(input: {
     }
 
     if (
-      role === "operator" &&
-      fromStatus === "ready" &&
-      toStatus === "delivered" &&
-      balanceDue > 0
+      balanceDue > 0 &&
+      ((fromStatus === "ready" && toStatus === "delivered") ||
+        (fromStatus === "received" && toStatus === "in_process"))
     ) {
       return {
         ok: false,
-        message:
-          "No puedes entregar un pedido con saldo pendiente. Solicita apoyo a un administrador.",
+        message: "El pedido debe pagarse completamente antes de continuar.",
       };
     }
 

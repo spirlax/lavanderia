@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { Constants } from "@/lib/supabase/database.types";
 import { limaDateTimeLocalToTimestamptz } from "@/lib/orders/datetime";
+import { paymentInputSchema } from "@/lib/payments/validation";
 
 const orderStatusSchema = z.enum(Constants.public.Enums.order_status);
 
@@ -88,7 +89,8 @@ export const createOrderSchema = z
       }
       seen.add(item.service_id);
     }
-  });
+  })
+  .and(paymentInputSchema);
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 

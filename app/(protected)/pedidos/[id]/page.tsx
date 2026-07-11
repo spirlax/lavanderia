@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { OrderStatusActions } from "@/components/orders/order-status-actions";
+import {
+  PayBalanceForm,
+  VoidPaymentForm,
+} from "@/components/payments/payment-actions";
 import styles from "@/components/ui/ui.module.css";
 import orderStyles from "@/components/orders/orders.module.css";
 import { requireCurrentProfile } from "@/lib/auth/get-current-profile";
@@ -9,6 +13,8 @@ import { formatDateTimeLima } from "@/lib/orders/datetime";
 import { getOrderDetail } from "@/lib/orders/queries";
 import { getOrderStatusLabel } from "@/lib/orders/status";
 import { getServiceUnitLabel } from "@/lib/services/labels";
+import { getPaymentMethodLabel } from "@/lib/payments/labels";
+import { getOpenCashSession } from "@/lib/cash/queries";
 
 type OrderDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -23,16 +29,17 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const [profile, detail] = await Promise.all([
+  const [profile, detail, cashSession] = await Promise.all([
     requireCurrentProfile(),
     getOrderDetail(id),
+    getOpenCashSession(),
   ]);
 
   if (!detail) {
     notFound();
   }
 
-  const { order, customer, items, history } = detail;
+  const { order, customer, items, history, payments } = detail;
 
   return (
     <div className={styles.page}>
@@ -52,6 +59,17 @@ export default async function OrderDetailPage({
         balanceDue={Number(order.balance_due)}
         role={profile.role}
       />
+
+      {order.balance_due > 0 && order.status !== "cancelled" ? (
+        <section className={`${styles.panel} ${styles.panelStack}`}>
+          <h2 className={styles.cardTitle}>Pagar saldo completo</h2>
+          <PayBalanceForm
+            orderId={order.id}
+            balanceDue={order.balance_due}
+            hasOpenCashSession={Boolean(cashSession)}
+          />
+        </section>
+      ) : null}
 
       <section className={`${styles.panel} ${styles.panelStack}`}>
         <h2 className={styles.cardTitle}>Cliente</h2>
@@ -198,6 +216,38 @@ export default async function OrderDetailPage({
           <span>Saldo</span>
           <strong>{formatCurrency(order.balance_due)}</strong>
         </div>
+      </section>
+
+      <section className={`${styles.panel} ${styles.panelStack}`}>
+        <h2 className={styles.cardTitle}>Pagos</h2>
+        {payments.length === 0 ? (
+          <p className={styles.help}>Sin pagos registrados.</p>
+        ) : (
+          payments.map((payment) => (
+            <article key={payment.id} className={styles.card}>
+              <div className={styles.headerRow}>
+                <strong>{getPaymentMethodLabel(payment.method)}</strong>
+                <strong>{formatCurrency(payment.amount)}</strong>
+              </div>
+              <div className={styles.meta}>
+                <span>{formatDateTimeLima(payment.paid_at)}</span>
+                {payment.cash_received !== null ? (
+                  <span>
+                    Recibido {formatCurrency(payment.cash_received)} · Vuelto{" "}
+                    {formatCurrency(payment.change_given ?? 0)}
+                  </span>
+                ) : null}
+                {payment.reference ? <span>Referencia: {payment.reference}</span> : null}
+                {payment.status === "voided" ? (
+                  <span>Anulado: {payment.void_reason}</span>
+                ) : null}
+              </div>
+              {profile.role === "admin" && payment.status === "posted" ? (
+                <VoidPaymentForm paymentId={payment.id} />
+              ) : null}
+            </article>
+          ))
+        )}
       </section>
 
       <section className={`${styles.panel} ${styles.panelStack}`}>

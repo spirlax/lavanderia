@@ -9,6 +9,7 @@ import type { SearchOrdersInput } from "@/lib/orders/validation";
 export type OrderRow = Tables<"orders">;
 export type OrderItemRow = Tables<"order_items">;
 export type OrderStatusHistoryRow = Tables<"order_status_history">;
+export type PaymentRow = Tables<"payments">;
 export type CustomerRow = Tables<"customers">;
 export type ServiceCatalogRow = Pick<
   Tables<"services">,
@@ -42,6 +43,7 @@ export type OrderDetail = {
       actor_name: string | null;
     }
   >;
+  payments: PaymentRow[];
 };
 
 const ACTIVE_ORDERS_LIMIT = 50;
@@ -275,7 +277,11 @@ export async function getOrderDetail(
     return null;
   }
 
-  const [{ data: items, error: itemsError }, { data: history, error: historyError }] =
+  const [
+    { data: items, error: itemsError },
+    { data: history, error: historyError },
+    { data: payments, error: paymentsError },
+  ] =
     await Promise.all([
       supabase
         .from("order_items")
@@ -291,9 +297,14 @@ export async function getOrderDetail(
         )
         .eq("order_id", orderId)
         .order("changed_at", { ascending: true }),
+      supabase
+        .from("payments")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("paid_at", { ascending: true }),
     ]);
 
-  if (itemsError || historyError) {
+  if (itemsError || historyError || paymentsError) {
     throw new Error("No se pudo cargar el detalle del pedido.");
   }
 
@@ -329,6 +340,7 @@ export async function getOrderDetail(
       ...entry,
       actor_name: actorNames.get(entry.changed_by) ?? null,
     })),
+    payments: payments ?? [],
   };
 }
 

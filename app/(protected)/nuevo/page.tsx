@@ -6,12 +6,14 @@ import {
   listActiveCustomersForOrder,
   listActiveServicesForOrder,
 } from "@/lib/orders/queries";
+import { getOpenCashSession } from "@/lib/cash/queries";
 
 export default async function NewOrderPage() {
   const profile = await requireCurrentProfile();
-  const [customers, services] = await Promise.all([
+  const [customers, services, cashSession] = await Promise.all([
     listActiveCustomersForOrder(),
     listActiveServicesForOrder(),
+    getOpenCashSession(),
   ]);
 
   return (
@@ -19,8 +21,8 @@ export default async function NewOrderPage() {
       <header className={styles.header}>
         <h1 className={styles.title}>Nuevo pedido</h1>
         <p className={styles.subtitle}>
-          Selecciona cliente, servicios y fecha programada. Los precios
-          definitivos los calcula el servidor.
+          Registra el pedido y su pago completo en una sola operación. Los
+          precios y el total definitivo los calcula el servidor.
         </p>
       </header>
 
@@ -37,6 +39,7 @@ export default async function NewOrderPage() {
           current_price: service.current_price,
         }))}
         canManageServices={canManageServices(profile.role)}
+        hasOpenCashSession={Boolean(cashSession)}
       />
     </div>
   );

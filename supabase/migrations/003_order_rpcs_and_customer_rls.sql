@@ -123,7 +123,7 @@ language sql
 volatile
 security invoker
 set search_path = ''
-as 'select * from private.create_platform_order( p_customer_id, p_scheduled_for, p_items, p_operation_id );'
+as 'select * from private.create_platform_order( p_customer_id, p_scheduled_for, p_items, p_operation_id );';
 
 create function public.transition_order_status(
   p_order_id uuid,
@@ -142,7 +142,7 @@ language sql
 volatile
 security invoker
 set search_path = ''
-as 'select * from private.transition_order_status( p_order_id, p_to_status, p_operation_id, p_reason );'
+as 'select * from private.transition_order_status( p_order_id, p_to_status, p_operation_id, p_reason );';
 
 revoke all privileges on function public.create_platform_order(uuid, timestamptz, jsonb, uuid)
   from public, anon, authenticated;

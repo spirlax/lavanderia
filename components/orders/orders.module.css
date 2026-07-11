@@ -92,6 +92,21 @@
   font-weight: 700;
 }
 
+.changeDisplay {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+
+.changeDisplay strong {
+  color: var(--primary);
+  font-size: clamp(1.75rem, 8vw, 2.75rem);
+}
+
 .historyList {
   display: flex;
   flex-direction: column;
