@@ -623,6 +623,18 @@ export type Database = {
         Args: { p_profile_id: string; p_pin: string };
         Returns: boolean;
       };
+      list_active_operator_directory: {
+        Args: Record<PropertyKey, never>;
+        Returns: { id: string; full_name: string }[];
+      };
+      list_operator_pin_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: { profile_id: string; full_name: string; is_active: boolean; pin_configured: boolean }[];
+      };
+      operator_pin_login: {
+        Args: { p_profile_id: string; p_pin: string };
+        Returns: Json;
+      };
       verify_operator_pin: {
         Args: { p_pin: string };
         Returns: boolean;
