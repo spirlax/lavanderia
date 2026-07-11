@@ -7,6 +7,9 @@ Cada fase requiere autorización explícita y cierre con `pnpm lint`, `pnpm type
 Completadas las fases de pagos, caja, reportes, BI, importación histórica y PIN.
 Las entidades diferidas siguen fuera de alcance.
 
+El reporte distingue datos de plataforma, históricos y combinados. El pretest
+puede usar resúmenes históricos y el postest datos operativos de plataforma.
+
 ## Estado actual
 
 Implementado:

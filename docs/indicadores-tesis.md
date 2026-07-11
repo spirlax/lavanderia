@@ -1,5 +1,14 @@
 # Indicadores de tesis
 
+## Origen de datos en el panel
+
+`/admin/reportes` permite seleccionar `Plataforma`, `Históricos` o `Combinado`.
+Los históricos usan resúmenes diarios importados: cumplimiento es entregados /
+recibidos, tasa de no recogidos es no recogidos / recibidos y el tiempo es el
+promedio de `tiempo_reporte_minutos`. El modo combinado suma numeradores y
+denominadores compatibles y recalcula porcentajes; no promedia porcentajes.
+Los históricos no crean pedidos ficticios ni tienen desglose por método de pago.
+
 ## Convenciones de medición
 
 - Moneda y zona horaria de la operación: PEN y `America/Lima`.

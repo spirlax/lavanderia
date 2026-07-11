@@ -9,7 +9,7 @@ Completado:
 - autenticación y roles;
 - catálogo, clientes, pedidos y estados;
 - pagos y caja diaria compartida;
-- reportes y BI en `/admin/reportes`;
+- reportes y BI en `/admin/reportes`, con vistas Plataforma, Históricos y Combinado;
 - importaciones históricas CSV en `/admin/importaciones`;
 - PIN de seis dígitos para operadoras en `/admin/pin` y login.
 
