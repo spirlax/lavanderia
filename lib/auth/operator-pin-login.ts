@@ -13,7 +13,7 @@ export async function operatorPinLoginAction(profileId: string, _previous: Opera
   const result = await response.json() as { status?: string; session?: { access_token: string; refresh_token: string } };
   if (result.status === "not_configured") return { status: "error", message: "La administradora aún no configuró tu PIN." };
   if (result.status === "locked") return { status: "error", message: "Tu PIN está bloqueado temporalmente." };
-  if (result.status === "inactive") return { status: "error", message: "La operadora está inactiva." };
+  if (result.status === "inactive") return { status: "error", message: "La empleada está inactiva." };
   if (result.status !== "success" || !result.session) return { status: "error", message: result.status === "session_error" ? "No se pudo crear la sesión." : "PIN incorrecto." };
   const session = await supabase.auth.setSession(result.session);
   if (session.error) return { status: "error", message: "No se pudo crear la sesión." };

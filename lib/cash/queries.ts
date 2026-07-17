@@ -37,7 +37,7 @@ export async function listCashOperators(): Promise<CashOperator[]> {
     .select("id, full_name, can_manage_cash_session, is_active")
     .eq("role", "operator")
     .order("full_name");
-  if (error) throw new Error("No se pudieron cargar las operadoras.");
+  if (error) throw new Error("No se pudieron cargar las empleadas.");
   return data ?? [];
 }
 
@@ -101,11 +101,11 @@ export async function getCashSessionSummary(
 
   return {
     session,
-    responsibleName: names.get(session.responsible_operator_id) ?? "Operadora",
+    responsibleName: names.get(session.responsible_operator_id) ?? "Empleada",
     totals,
     paymentsByOperator: [...byOperator].map(([id, value]) => ({
       id,
-      name: names.get(id) ?? "Operadora",
+      name: names.get(id) ?? "Empleada",
       ...value,
     })),
     voidedPayments: (payments ?? [])

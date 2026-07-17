@@ -323,7 +323,7 @@ export default async function OrderDetailPage({
                   {entry.actor_name ??
                     (entry.actor_role_snapshot === "admin"
                       ? "Administrador"
-                      : "Operadora")}
+                      : "Empleada")}
                 </span>
                 {entry.reason ? (
                   <span className={styles.help}>Motivo: {entry.reason}</span>

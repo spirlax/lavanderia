@@ -41,7 +41,6 @@ export function OperatorAccess({
           onClick={() => setSelected(operator.id)}
         >
           <span className={styles.operatorPickName}>{operator.full_name}</span>
-          <span className={styles.operatorPickHint}>Seleccionar operadora</span>
         </button>
       ))}
     </div>
@@ -77,11 +76,11 @@ function OperatorPinForm({
       }}
     >
       <button className={styles.textLink} onClick={onBack} type="button">
-        ← Cambiar operadora
+        ← Cambiar empleada
       </button>
 
       <div className={styles.pinStatus}>
-        <p className={styles.help}>Operadora seleccionada</p>
+        <p className={styles.help}>Empleada seleccionada</p>
         <h2 className={styles.sectionTitle}>{operator.full_name}</h2>
         <p
           className={styles.pinDots}

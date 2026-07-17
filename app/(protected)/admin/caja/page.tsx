@@ -83,7 +83,7 @@ export default async function AdminCashPage() {
           <h2 className={styles.sectionTitle}>Cierre administrativo</h2>
           <p className={styles.help}>
             Reserva para supervisión. El cierre habitual lo realiza la
-            operadora responsable en su área.
+            empleada responsable en su área.
           </p>
           <CloseCashSessionForm
             sessionId={openSession.id}
@@ -98,7 +98,7 @@ export default async function AdminCashPage() {
             Apertura excepcional
           </summary>
           <p className={styles.help}>
-            Usa solo si la operadora responsable no puede abrir desde su
+            Usa solo si la empleada responsable no puede abrir desde su
             sesión.
           </p>
           <OpenCashSessionForm operators={operators} />
@@ -125,7 +125,7 @@ export default async function AdminCashPage() {
       <p className={styles.help}>
         La autorización de responsable de caja se gestiona en{" "}
         <Link href="/admin/pin" className={styles.textLink}>
-          Operadoras y PIN
+          Empleadas y PIN
         </Link>
         .
       </p>

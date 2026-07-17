@@ -14,7 +14,7 @@ export default async function AdminPinPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Operadoras y PIN</h1>
+        <h1 className={styles.title}>Empleadas y PIN</h1>
         <p className={styles.subtitle}>
           Acceso por PIN y autorización de responsable de caja.
         </p>
@@ -85,7 +85,7 @@ export default async function AdminPinPage() {
           Responsable de caja
         </h2>
         <p className={styles.help}>
-          Solo la operadora autorizada puede abrir la caja del día.
+          Solo la empleada autorizada puede abrir la caja del día.
         </p>
         {cashOperators.map((operator) => (
           <article key={operator.id} className={styles.card}>

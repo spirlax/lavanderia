@@ -34,7 +34,7 @@ function mapCashError(error: { message?: string }): string {
     return "Ya existe una caja para la jornada o hay una caja abierta.";
   }
   if (message.includes("responsible operator")) {
-    return "La responsable debe ser una operadora activa con permiso de caja.";
+    return "La responsable debe ser una empleada activa con permiso de caja.";
   }
   if (message.includes("already closed")) {
     return "La caja ya está cerrada.";

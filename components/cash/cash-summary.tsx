@@ -117,7 +117,7 @@ export function CashSummary({
           </section>
 
           <section className={styles.panelStack}>
-            <h3 className={styles.cardTitle}>Pagos por operadora</h3>
+            <h3 className={styles.cardTitle}>Pagos por empleada</h3>
             {summary.paymentsByOperator.length === 0 ? (
               <p className={styles.help}>Aún no hay pagos registrados.</p>
             ) : (

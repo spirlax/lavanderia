@@ -27,7 +27,7 @@ export default async function LoginPage() {
             <span className={styles.roleChoiceMark} aria-hidden="true">
               ◉
             </span>
-            <h2 className={styles.roleChoiceTitle}>Soy operadora</h2>
+            <h2 className={styles.roleChoiceTitle}>Soy empleada</h2>
             <p className={styles.roleChoiceText}>
               Ingresa con tu identidad y PIN.
             </p>

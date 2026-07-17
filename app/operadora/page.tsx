@@ -23,7 +23,7 @@ export default async function OperatorPage() {
         </Link>
         <header className={styles.authHeader}>
           <p className={styles.eyebrow}>Lavandería</p>
-          <h1 className={styles.displayTitle}>Acceso de operadora</h1>
+          <h1 className={styles.displayTitle}>Acceso de empleada</h1>
         </header>
         <OperatorAccess operators={data ?? []} />
       </section>

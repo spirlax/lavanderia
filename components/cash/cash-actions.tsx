@@ -43,7 +43,7 @@ export function OpenCashSessionForm({
       ) : (
         <div className={styles.field}>
           <label className={styles.label} htmlFor="responsible-operator">
-            Operadora responsable
+            Empleada responsable
           </label>
           <select
             id="responsible-operator"

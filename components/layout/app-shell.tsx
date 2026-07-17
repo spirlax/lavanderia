@@ -59,7 +59,7 @@ function isLinkActive(pathname: string, link: NavLink): boolean {
 }
 
 function roleLabel(role: Profile["role"]): string {
-  return role === "admin" ? "Administrador" : "Operadora";
+  return role === "admin" ? "Administrador" : "Empleada";
 }
 
 function NavItem({
@@ -168,7 +168,7 @@ function AdminNavGroups({
       links: [
         {
           href: "/admin/pin",
-          label: "Operadoras y PIN",
+          label: "Empleadas y PIN",
           icon: KeyRound,
           match: "prefix",
         },

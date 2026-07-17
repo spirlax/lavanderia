@@ -47,7 +47,7 @@ export default async function CashPage() {
       <header className={styles.header}>
         <h1 className={styles.title}>Caja del día</h1>
         <p className={styles.subtitle}>
-          Una sola caja compartida para ambas operadoras.
+          Una sola caja compartida para ambas empleadas.
         </p>
       </header>
 
@@ -82,7 +82,7 @@ export default async function CashPage() {
 
       {!isOpen && !isClosedToday && !canOpen ? (
         <Alert tone="info">
-          La operadora responsable debe abrir la caja.
+          La empleada responsable debe abrir la caja.
         </Alert>
       ) : null}
 
@@ -98,7 +98,7 @@ export default async function CashPage() {
 
       {isOpen && !canClose ? (
         <Alert tone="info">
-          Solo la operadora responsable puede cerrar la caja.
+          Solo la empleada responsable puede cerrar la caja.
         </Alert>
       ) : null}
     </div>
